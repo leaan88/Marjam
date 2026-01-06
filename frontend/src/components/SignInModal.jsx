@@ -1,5 +1,4 @@
 import React from 'react';
-import { X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +12,7 @@ const SignInModal = ({ isOpen, onClose }) => {
       <DialogContent className="bg-neutral-900 border-white/10 max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-light text-white text-center">
-            Sign in to Endel
+            Sign in to Marjam
           </DialogTitle>
         </DialogHeader>
         
@@ -51,7 +50,7 @@ const SignInModal = ({ isOpen, onClose }) => {
             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/30 transition-colors"
           />
           
-          <button className="w-full px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-colors">
+          <button className="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg font-medium transition-all">
             Continue with Email
           </button>
         </div>
