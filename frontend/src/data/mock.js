@@ -5,22 +5,22 @@ export const banners = [
     id: 1,
     badge: "SPECIAL OFFER",
     title: "Get 30% off Premium",
-    image: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800&q=80",
-    bgStyle: "linear-gradient(135deg, rgba(139, 69, 116, 0.9) 0%, rgba(47, 79, 79, 0.9) 50%, rgba(25, 25, 112, 0.9) 100%)"
+    image: "https://images.pexels.com/photos/70330/pexels-photo-70330.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    bgStyle: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)"
   },
   {
     id: 2,
     badge: "MAJOR UPDATE",
     title: "Endel for ADHD",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80",
-    bgStyle: "linear-gradient(135deg, rgba(75, 0, 130, 0.9) 0%, rgba(138, 43, 226, 0.9) 50%, rgba(255, 140, 0, 0.9) 100%)"
+    image: "https://images.pexels.com/photos/85773/pexels-photo-85773.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    bgStyle: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)"
   },
   {
     id: 3,
     badge: "NEW",
     title: "Endel Merch Available Now",
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
-    bgStyle: "linear-gradient(135deg, rgba(0, 100, 0, 0.9) 0%, rgba(34, 139, 34, 0.9) 50%, rgba(0, 128, 128, 0.9) 100%)"
+    image: "https://images.pexels.com/photos/69776/tulips-bed-colorful-color-69776.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    bgStyle: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)"
   }
 ];
 
