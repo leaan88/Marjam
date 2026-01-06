@@ -4,6 +4,8 @@ import Banner from '../components/Banner';
 import Scenarios from '../components/Scenarios';
 import SoundscapeSection from '../components/SoundscapeSection';
 import Player from '../components/Player';
+import SignInModal from '../components/SignInModal';
+import PremiumModal from '../components/PremiumModal';
 import { focusSoundscapes, relaxSoundscapes, sleepSoundscapes } from '../data/mock';
 
 const HomePage = () => {
@@ -14,8 +16,16 @@ const HomePage = () => {
     section: 'Focus'
   });
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showSignIn, setShowSignIn] = useState(false);
+  const [showPremium, setShowPremium] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState('');
 
   const handlePlay = (track, section) => {
+    if (track.locked) {
+      setSelectedFeature(track.name);
+      setShowPremium(true);
+      return;
+    }
     setCurrentTrack({ ...track, section });
     setIsPlaying(true);
   };
@@ -24,16 +34,23 @@ const HomePage = () => {
     setIsPlaying(!isPlaying);
   };
 
+  const handleScenarioClick = (scenario) => {
+    if (scenario.locked) {
+      setSelectedFeature(scenario.name);
+      setShowPremium(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black">
-      <Header />
+      <Header onSignInClick={() => setShowSignIn(true)} />
       
       <main className="pt-24 pb-32 px-6">
         {/* Banner Carousel */}
         <Banner />
         
         {/* Scenarios Section */}
-        <Scenarios />
+        <Scenarios onScenarioClick={handleScenarioClick} />
         
         {/* Soundscape Sections */}
         <SoundscapeSection 
@@ -63,6 +80,14 @@ const HomePage = () => {
         currentTrack={currentTrack}
         isPlaying={isPlaying}
         onPlayPause={handlePlayPause}
+      />
+      
+      {/* Modals */}
+      <SignInModal isOpen={showSignIn} onClose={() => setShowSignIn(false)} />
+      <PremiumModal 
+        isOpen={showPremium} 
+        onClose={() => setShowPremium(false)} 
+        featureName={selectedFeature}
       />
     </div>
   );
