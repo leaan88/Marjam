@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Header = () => {
+const Header = ({ onSignInClick }) => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -20,7 +20,10 @@ const Header = () => {
         </div>
 
         {/* Sign In Button */}
-        <button className="px-4 py-2 text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors duration-200">
+        <button 
+          onClick={onSignInClick}
+          className="px-4 py-2 text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors duration-200"
+        >
           Sign In
         </button>
       </div>
