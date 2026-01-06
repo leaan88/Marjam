@@ -1,76 +1,84 @@
-// Mock data for Endel clone
+// Mock data for Marjam - Loop Ideas Jamming App
 
 export const banners = [
   {
     id: 1,
     badge: "SPECIAL OFFER",
     title: "Get 30% off Premium",
-    image: "https://images.pexels.com/photos/70330/pexels-photo-70330.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    bgStyle: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)"
+    image: "https://images.pexels.com/photos/164938/pexels-photo-164938.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    bgStyle: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%)"
   },
   {
     id: 2,
-    badge: "MAJOR UPDATE",
-    title: "Endel for ADHD",
-    image: "https://images.pexels.com/photos/85773/pexels-photo-85773.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    bgStyle: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)"
+    badge: "NEW LOOPS",
+    title: "Fresh Inspiration Daily",
+    image: "https://images.pexels.com/photos/1105666/pexels-photo-1105666.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    bgStyle: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%)"
   },
   {
     id: 3,
-    badge: "NEW",
-    title: "Endel Merch Available Now",
-    image: "https://images.pexels.com/photos/69776/tulips-bed-colorful-color-69776.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    bgStyle: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)"
+    badge: "PRODUCERS",
+    title: "Download 8/16/32 Bar Loops",
+    image: "https://images.pexels.com/photos/1626481/pexels-photo-1626481.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    bgStyle: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%)"
   }
 ];
 
-export const scenarios = [
-  { id: 1, name: "Focus Timer", locked: true },
-  { id: 2, name: "Anxiety Relief", locked: true },
-  { id: 3, name: "Arousal", locked: true },
-  { id: 4, name: "Attention Boost", locked: true },
-  { id: 5, name: "ASMR", locked: true },
-  { id: 6, name: "Baby Sleep", locked: true },
-  { id: 7, name: "Binaural Beats", locked: true },
-  { id: 8, name: "Brain Massage", locked: true },
-  { id: 9, name: "Chores", locked: true },
-  { id: 10, name: "Create", locked: true },
-  { id: 11, name: "Deep Work", locked: true },
-  { id: 12, name: "Self Care", locked: true },
-  { id: 13, name: "Read", locked: true },
-  { id: 14, name: "Power Nap", locked: true },
-  { id: 15, name: "Meditate", locked: true },
-  { id: 16, name: "Wake Up", locked: true },
-  { id: 17, name: "Tinnitus Relief", locked: true }
+export const moodParameters = [
+  { id: 1, name: "Peaceful", locked: false },
+  { id: 2, name: "Focus", locked: false },
+  { id: 3, name: "Groovy", locked: false },
+  { id: 4, name: "Introspective", locked: true },
+  { id: 5, name: "Uplift", locked: true },
+  { id: 6, name: "Darker", locked: true },
+  { id: 7, name: "Lighter", locked: true },
+  { id: 8, name: "Banging", locked: true },
+  { id: 9, name: "Dry", locked: true },
+  { id: 10, name: "Wet", locked: true },
+  { id: 11, name: "Minimal", locked: true },
+  { id: 12, name: "Complex", locked: true },
+  { id: 13, name: "Hypnotic", locked: true },
+  { id: 14, name: "Energetic", locked: true },
+  { id: 15, name: "Chill", locked: true },
+  { id: 16, name: "Aggressive", locked: true },
+  { id: 17, name: "Dreamy", locked: true }
 ];
 
-export const focusSoundscapes = [
-  { id: 1, name: "Focus", icon: "globe", locked: false },
-  { id: 2, name: "Colored Noises", icon: "dots", locked: true },
-  { id: 3, name: "Dynamic Focus", icon: "record", locked: true },
-  { id: 4, name: "Study", icon: "waves", locked: true },
-  { id: 5, name: "Deeper Focus", icon: "spiral", locked: true }
+export const drumLoops = [
+  { id: 1, name: "Kick Foundation", icon: "drums", bpm: 120, locked: false },
+  { id: 2, name: "Snare Groove", icon: "snare", bpm: 128, locked: true },
+  { id: 3, name: "Hi-Hat Shuffle", icon: "hihat", bpm: 125, locked: true },
+  { id: 4, name: "Percussion Layer", icon: "percussion", bpm: 122, locked: true },
+  { id: 5, name: "Full Kit", icon: "fullkit", bpm: 130, locked: true }
 ];
 
-export const relaxSoundscapes = [
-  { id: 1, name: "Relax", icon: "diamond", locked: false },
-  { id: 2, name: "8D Odyssey", icon: "eight", locked: true },
-  { id: 3, name: "Nature Elements", icon: "leaf", locked: true },
-  { id: 4, name: "Spatial Orbit", icon: "orbit", locked: true },
-  { id: 5, name: "Hibernation", icon: "snowflake", locked: true },
-  { id: 6, name: "Recovery", icon: "sprout", locked: true },
-  { id: 7, name: "Wiggly Wisdom", icon: "wisdom", locked: true }
+export const bassLoops = [
+  { id: 1, name: "Sub Bass", icon: "subbass", bpm: 120, locked: false },
+  { id: 2, name: "Funk Bass", icon: "funkbass", bpm: 115, locked: true },
+  { id: 3, name: "808 Pattern", icon: "bass808", bpm: 140, locked: true },
+  { id: 4, name: "Acid Line", icon: "acidbass", bpm: 128, locked: true },
+  { id: 5, name: "Deep Groove", icon: "deepbass", bpm: 118, locked: true }
 ];
 
-export const sleepSoundscapes = [
-  { id: 1, name: "Sleep", icon: "moon", locked: false },
-  { id: 2, name: "Rainy Outside", icon: "rain", locked: true },
-  { id: 3, name: "Wind Down", icon: "wind", locked: true },
-  { id: 4, name: "AI Lullaby", icon: "lullaby", locked: true }
+export const synthLoops = [
+  { id: 1, name: "Pad Atmosphere", icon: "pad", bpm: 120, locked: false },
+  { id: 2, name: "Lead Melody", icon: "lead", bpm: 128, locked: true },
+  { id: 3, name: "Arp Sequence", icon: "arp", bpm: 135, locked: true },
+  { id: 4, name: "Chord Progression", icon: "chords", bpm: 122, locked: true },
+  { id: 5, name: "Texture Layer", icon: "texture", bpm: 110, locked: true }
 ];
 
-export const currentTrack = {
-  name: "Focus",
-  status: "Paused",
-  icon: "globe"
+export const fxLoops = [
+  { id: 1, name: "Risers", icon: "riser", bpm: 128, locked: false },
+  { id: 2, name: "Impacts", icon: "impact", bpm: 128, locked: true },
+  { id: 3, name: "Sweeps", icon: "sweep", bpm: 128, locked: true },
+  { id: 4, name: "Transitions", icon: "transition", bpm: 128, locked: true }
+];
+
+export const currentLoop = {
+  name: "Kick Foundation",
+  bpm: 120,
+  icon: "drums",
+  bars: 8
 };
+
