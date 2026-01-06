@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Play, Pause } from 'lucide-react';
 import { getIconComponent } from './icons/SoundscapeIcons';
 
 const Player = ({ currentTrack, isPlaying, onPlayPause }) => {
-  if (!currentTrack) return null;
+  const IconComponent = useMemo(() => {
+    return currentTrack ? getIconComponent(currentTrack.icon) : null;
+  }, [currentTrack?.icon]);
   
-  const IconComponent = getIconComponent(currentTrack.icon);
+  if (!currentTrack || !IconComponent) return null;
   
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
