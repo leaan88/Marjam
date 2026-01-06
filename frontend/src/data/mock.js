@@ -6,24 +6,21 @@ export const banners = [
     badge: "SPECIAL OFFER",
     title: "Get 30% off Premium",
     image: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800&q=80",
-    gradient: "from-pink-500 via-red-400 to-yellow-400",
-    bgColor: "bg-gradient-to-r from-pink-600/20 to-blue-600/20"
+    bgStyle: "linear-gradient(135deg, rgba(139, 69, 116, 0.9) 0%, rgba(47, 79, 79, 0.9) 50%, rgba(25, 25, 112, 0.9) 100%)"
   },
   {
     id: 2,
     badge: "MAJOR UPDATE",
     title: "Endel for ADHD",
-    image: "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=800&q=80",
-    gradient: "from-purple-500 via-pink-400 to-orange-400",
-    bgColor: "bg-gradient-to-r from-purple-600/20 to-orange-600/20"
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80",
+    bgStyle: "linear-gradient(135deg, rgba(75, 0, 130, 0.9) 0%, rgba(138, 43, 226, 0.9) 50%, rgba(255, 140, 0, 0.9) 100%)"
   },
   {
     id: 3,
     badge: "NEW",
     title: "Endel Merch Available Now",
-    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80",
-    gradient: "from-green-500 via-teal-400 to-blue-400",
-    bgColor: "bg-gradient-to-r from-green-600/20 to-blue-600/20"
+    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+    bgStyle: "linear-gradient(135deg, rgba(0, 100, 0, 0.9) 0%, rgba(34, 139, 34, 0.9) 50%, rgba(0, 128, 128, 0.9) 100%)"
   }
 ];
 
