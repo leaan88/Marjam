@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { Lock, Play } from 'lucide-react';
 import { getIconComponent } from './icons/SoundscapeIcons';
 
 const SoundscapeItem = ({ item, onPlay, isPlaying }) => {
-  const IconComponent = getIconComponent(item.icon);
+  const IconComponent = useMemo(() => getIconComponent(item.icon), [item.icon]);
   
   return (
     <div 
