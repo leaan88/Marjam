@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
-import { Lock, Play } from 'lucide-react';
+import { Lock, Play, Download } from 'lucide-react';
 import { getIconComponent } from './icons/SoundscapeIcons';
 
-const SoundscapeItem = ({ item, onPlay, isPlaying }) => {
+const LoopItem = ({ item, onPlay, onDownload, isPlaying }) => {
   const IconComponent = useMemo(() => getIconComponent(item.icon), [item.icon]);
   
   return (
@@ -14,37 +14,53 @@ const SoundscapeItem = ({ item, onPlay, isPlaying }) => {
         <div className="w-12 h-12 flex items-center justify-center">
           <IconComponent className="w-10 h-10 text-white/80 group-hover:text-white transition-colors" />
         </div>
-        <span className={`text-base font-light ${
-          item.locked ? 'text-white/60' : 'text-white'
-        } group-hover:text-white transition-colors`}>
-          {item.name}
-        </span>
+        <div className="flex flex-col">
+          <span className={`text-base font-light ${
+            item.locked ? 'text-white/60' : 'text-white'
+          } group-hover:text-white transition-colors`}>
+            {item.name}
+          </span>
+          <span className="text-xs text-white/40">{item.bpm} BPM</span>
+        </div>
       </div>
       
-      <div className="flex items-center">
+      <div className="flex items-center gap-3">
         {item.locked ? (
           <Lock className="w-4 h-4 text-white/40" />
         ) : (
-          <Play className={`w-5 h-5 text-white/60 group-hover:text-white transition-all duration-200 ${
-            isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-          }`} />
+          <>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onDownload(item);
+              }}
+              className="p-2 rounded-full hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-all duration-200"
+              title="Download Loop"
+            >
+              <Download className="w-4 h-4 text-white/60 hover:text-white" />
+            </button>
+            <Play className={`w-5 h-5 text-white/60 group-hover:text-white transition-all duration-200 ${
+              isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            }`} />
+          </>
         )}
       </div>
     </div>
   );
 };
 
-const SoundscapeSection = ({ title, soundscapes, onPlay, currentPlaying }) => {
+const LoopSection = ({ title, loops, onPlay, onDownload, currentPlaying }) => {
   return (
     <section className="w-full max-w-3xl mx-auto mt-10">
       <h2 className="text-2xl font-light text-white mb-2">{title}</h2>
       
       <div className="divide-y divide-white/5">
-        {soundscapes.map((item) => (
-          <SoundscapeItem 
+        {loops.map((item) => (
+          <LoopItem 
             key={item.id} 
             item={item} 
             onPlay={onPlay}
+            onDownload={onDownload}
             isPlaying={currentPlaying?.id === item.id && currentPlaying?.section === title}
           />
         ))}
@@ -53,4 +69,4 @@ const SoundscapeSection = ({ title, soundscapes, onPlay, currentPlaying }) => {
   );
 };
 
-export default SoundscapeSection;
+export default LoopSection;
