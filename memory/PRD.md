@@ -1,7 +1,7 @@
-# Endel Clone - Product Requirements Document
+# Marjam - Loop Ideas Jamming App
 
 ## Overview
-A pixel-perfect frontend clone of https://app.endel.io - a personalized soundscapes app for focus, relaxation, and sleep.
+A music loop inspiration app for musicians and producers. Users can browse, preview, and download loop sequences in various lengths (8/16/32 bars) with mood-based filtering.
 
 ## Tech Stack
 - **Frontend**: React 19 with Tailwind CSS
@@ -12,44 +12,61 @@ A pixel-perfect frontend clone of https://app.endel.io - a personalized soundsca
 ## Features Implemented
 
 ### 1. Header
-- Endel-style logo with circular icon
-- "FREEMIUM" badge
+- Marjam logo with purple gradient icon
+- Brand name "Marjam"
+- "FREE" badge
 - Sign In button (triggers modal)
 
 ### 2. Banner Carousel
 - Auto-rotating carousel (5 second intervals)
-- 3 promotional banners with colorful floral images
+- 3 promotional banners with music studio images
 - Dot indicators for navigation
 - Smooth slide transitions
 
-### 3. Scenarios Section
-- 17 scenario buttons (Focus Timer, Anxiety Relief, etc.)
-- Lock icons indicating premium features
-- Pill-shaped button design
+### 3. Mood Parameters Section
+- 17 mood parameters for filtering loops:
+  - **Free**: Peaceful, Focus, Groovy
+  - **Premium**: Introspective, Uplift, Darker, Lighter, Banging, Dry, Wet, Minimal, Complex, Hypnotic, Energetic, Chill, Aggressive, Dreamy
+- Toggle active moods (purple highlight when active)
+- Lock icons for premium moods
 
-### 4. Soundscape Sections
-- **Focus**: Focus, Colored Noises, Dynamic Focus, Study, Deeper Focus
-- **Relax**: Relax, 8D Odyssey, Nature Elements, Spatial Orbit, Hibernation, Recovery, Wiggly Wisdom
-- **Sleep**: Sleep, Rainy Outside, Wind Down, AI Lullaby
-- Custom SVG icons for each soundscape
-- Lock/unlock states
+### 4. Loop Sections
+- **Drums**: Kick Foundation, Snare Groove, Hi-Hat Shuffle, Percussion Layer, Full Kit
+- **Bass**: Sub Bass, Funk Bass, 808 Pattern, Acid Line, Deep Groove
+- **Synths**: Pad Atmosphere, Lead Melody, Arp Sequence, Chord Progression, Texture Layer
+- **FX & Transitions**: Risers, Impacts, Sweeps, Transitions
+- Each loop shows: Name, BPM, custom icon
+- Hover reveals download + play buttons
 
 ### 5. Bottom Player
-- Floating player bar
-- Current track info with icon
-- Play/Pause functionality
-- Paused/Playing status
+- Floating player bar at bottom
+- Loop icon + name + BPM
+- Bar length indicator (8 bars badge)
+- Stop & Play/Pause controls
 
-### 6. Modals
-- **Sign In Modal**: Google, Apple, Email authentication options
-- **Premium Modal**: Feature unlock, pricing, benefits list
+### 6. Download Modal (Premium Feature)
+- Loop info display
+- Bar length selection: **8 bars**, **16 bars**, **32 bars**
+- Duration estimates (~4 sec, ~8 sec, ~16 sec)
+- File format info (WAV 44.1kHz)
+- Download button with loading state
 
-## Design System
-- **Background**: Pure black (#000000)
-- **Text**: White with opacity variations
-- **Font**: Inter (light, regular, medium weights)
-- **Border Radius**: Rounded corners (rounded-full for pills, rounded-xl for modals)
-- **Spacing**: Generous whitespace following modern design principles
+### 7. Premium Modal
+- Feature-specific unlock title
+- Benefits list:
+  - Download loops in 8, 16, or 32 bar lengths
+  - Unlimited access to all loop categories
+  - All mood parameters unlocked
+  - Stems & individual tracks export
+  - Commercial license included
+  - New loops added weekly
+- Pricing: $9.99/month or $69.99/year (40% off)
+- "Start Free Trial" CTA
+
+### 8. Sign In Modal
+- Google and Apple sign-in options
+- Email sign-in with gradient button
+- Terms agreement notice
 
 ## File Structure
 ```
@@ -57,13 +74,14 @@ A pixel-perfect frontend clone of https://app.endel.io - a personalized soundsca
 ├── components/
 │   ├── Header.jsx
 │   ├── Banner.jsx
-│   ├── Scenarios.jsx
-│   ├── SoundscapeSection.jsx
+│   ├── Scenarios.jsx (MoodParameters)
+│   ├── SoundscapeSection.jsx (LoopSection)
 │   ├── Player.jsx
 │   ├── SignInModal.jsx
 │   ├── PremiumModal.jsx
+│   ├── DownloadModal.jsx
 │   └── icons/
-│       └── SoundscapeIcons.jsx
+│       └── SoundscapeIcons.jsx (LoopIcons)
 ├── pages/
 │   └── HomePage.jsx
 ├── data/
@@ -73,8 +91,16 @@ A pixel-perfect frontend clone of https://app.endel.io - a personalized soundsca
 ```
 
 ## Data (MOCKED)
-All data including banners, scenarios, and soundscapes are mocked in `/app/frontend/src/data/mock.js`. No backend integration.
+All data including banners, mood parameters, and loops are mocked in `/app/frontend/src/data/mock.js`. No backend integration - no actual audio files.
+
+## Design System
+- **Background**: Pure black (#000000)
+- **Primary Accent**: Purple gradient (purple-500 to pink-500)
+- **Active States**: Purple tint (purple-500/20)
+- **Text**: White with opacity variations
+- **Font**: Inter (light, regular, medium, semibold weights)
 
 ## Status
 ✅ Frontend Complete with mock data
-❌ No backend implementation (frontend-only clone)
+❌ No backend implementation (frontend-only)
+❌ No actual audio playback (visual only)
