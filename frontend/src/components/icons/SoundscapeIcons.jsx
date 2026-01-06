@@ -1,174 +1,201 @@
 import React from 'react';
 
-export const GlobeIcon = ({ className }) => (
+export const DrumsIcon = ({ className }) => (
   <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
     <circle cx="24" cy="24" r="20" />
-    <ellipse cx="24" cy="24" rx="8" ry="20" />
-    <line x1="4" y1="24" x2="44" y2="24" />
-    <path d="M6 16h36" />
-    <path d="M6 32h36" />
+    <ellipse cx="24" cy="32" rx="12" ry="6" />
+    <line x1="12" y1="32" x2="12" y2="18" />
+    <line x1="36" y1="32" x2="36" y2="18" />
+    <ellipse cx="24" cy="18" rx="12" ry="6" />
   </svg>
 );
 
-export const DotsIcon = ({ className }) => (
-  <svg viewBox="0 0 48 48" fill="none" className={className}>
-    <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="1.5" />
-    {[...Array(5)].map((_, row) => (
-      [...Array(5)].map((_, col) => (
-        <circle
-          key={`${row}-${col}`}
-          cx={12 + col * 6}
-          cy={12 + row * 6}
-          r="1.5"
-          fill="currentColor"
-          opacity={(row + col) % 2 === 0 ? 1 : 0.5}
-        />
-      ))
+export const SnareIcon = ({ className }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
+    <circle cx="24" cy="24" r="20" />
+    <ellipse cx="24" cy="28" rx="10" ry="5" />
+    <ellipse cx="24" cy="20" rx="10" ry="5" />
+    <line x1="14" y1="20" x2="14" y2="28" />
+    <line x1="34" y1="20" x2="34" y2="28" />
+  </svg>
+);
+
+export const HihatIcon = ({ className }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
+    <circle cx="24" cy="24" r="20" />
+    <ellipse cx="24" cy="20" rx="10" ry="3" />
+    <ellipse cx="24" cy="26" rx="10" ry="3" />
+    <line x1="24" y1="26" x2="24" y2="38" />
+  </svg>
+);
+
+export const PercussionIcon = ({ className }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
+    <circle cx="24" cy="24" r="20" />
+    <circle cx="18" cy="20" r="5" />
+    <circle cx="30" cy="28" r="5" />
+    <line x1="18" y1="25" x2="18" y2="36" />
+    <line x1="30" y1="33" x2="30" y2="38" />
+  </svg>
+);
+
+export const FullkitIcon = ({ className }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
+    <circle cx="24" cy="24" r="20" />
+    <circle cx="16" cy="28" r="6" />
+    <circle cx="32" cy="28" r="6" />
+    <ellipse cx="24" cy="16" rx="8" ry="4" />
+  </svg>
+);
+
+export const SubbassIcon = ({ className }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
+    <circle cx="24" cy="24" r="20" />
+    <path d="M12 24 Q18 14, 24 24 Q30 34, 36 24" />
+    <path d="M12 28 Q18 20, 24 28 Q30 36, 36 28" strokeOpacity="0.5" />
+  </svg>
+);
+
+export const FunkbassIcon = ({ className }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
+    <circle cx="24" cy="24" r="20" />
+    <path d="M14 20 L14 34 L22 34 L22 28 L34 28 L34 20" />
+    <circle cx="18" cy="24" r="2" fill="currentColor" />
+  </svg>
+);
+
+export const Bass808Icon = ({ className }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
+    <circle cx="24" cy="24" r="20" />
+    <rect x="14" y="16" width="20" height="16" rx="2" />
+    <circle cx="20" cy="24" r="3" />
+    <circle cx="28" cy="24" r="3" />
+    <line x1="14" y1="20" x2="34" y2="20" />
+  </svg>
+);
+
+export const AcidbassIcon = ({ className }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
+    <circle cx="24" cy="24" r="20" />
+    <path d="M12 30 Q16 14, 24 24 Q32 34, 36 18" />
+    <circle cx="16" cy="22" r="2" fill="currentColor" />
+    <circle cx="32" cy="26" r="2" fill="currentColor" />
+  </svg>
+);
+
+export const DeepbassIcon = ({ className }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
+    <circle cx="24" cy="24" r="20" />
+    <path d="M10 24 Q17 16, 24 24 Q31 32, 38 24" />
+    <path d="M10 28 Q17 20, 24 28 Q31 36, 38 28" strokeOpacity="0.6" />
+    <path d="M10 32 Q17 24, 24 32 Q31 40, 38 32" strokeOpacity="0.3" />
+  </svg>
+);
+
+export const PadIcon = ({ className }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
+    <circle cx="24" cy="24" r="20" />
+    <ellipse cx="24" cy="24" rx="14" ry="8" />
+    <ellipse cx="24" cy="24" rx="8" ry="4" />
+  </svg>
+);
+
+export const LeadIcon = ({ className }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
+    <circle cx="24" cy="24" r="20" />
+    <path d="M12 32 L18 16 L24 28 L30 12 L36 32" />
+  </svg>
+);
+
+export const ArpIcon = ({ className }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
+    <circle cx="24" cy="24" r="20" />
+    <rect x="12" y="28" width="4" height="8" rx="1" />
+    <rect x="18" y="22" width="4" height="14" rx="1" />
+    <rect x="24" y="16" width="4" height="20" rx="1" />
+    <rect x="30" y="20" width="4" height="16" rx="1" />
+  </svg>
+);
+
+export const ChordsIcon = ({ className }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
+    <circle cx="24" cy="24" r="20" />
+    <rect x="10" y="18" width="6" height="16" rx="1" />
+    <rect x="18" y="14" width="6" height="20" rx="1" />
+    <rect x="26" y="16" width="6" height="18" rx="1" />
+    <rect x="34" y="20" width="4" height="12" rx="1" />
+  </svg>
+);
+
+export const TextureIcon = ({ className }) => (
+  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
+    <circle cx="24" cy="24" r="20" />
+    {[...Array(4)].map((_, i) => (
+      <line key={i} x1={12 + i * 8} y1="12" x2={12 + i * 8} y2="36" strokeOpacity={0.3 + i * 0.2} />
     ))}
+    <path d="M10 24 Q18 18, 24 24 Q30 30, 38 24" strokeOpacity="0.6" />
   </svg>
 );
 
-export const RecordIcon = ({ className }) => (
+export const RiserIcon = ({ className }) => (
   <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
     <circle cx="24" cy="24" r="20" />
-    <circle cx="24" cy="24" r="6" />
+    <path d="M12 36 L24 12 L36 36" />
+    <path d="M16 32 L24 18 L32 32" strokeOpacity="0.6" />
   </svg>
 );
 
-export const WavesIcon = ({ className }) => (
+export const ImpactIcon = ({ className }) => (
   <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
     <circle cx="24" cy="24" r="20" />
-    <path d="M8 24c4-8 8-8 16 0s12 8 16 0" />
-    <path d="M8 18c4-6 8-6 16 0s12 6 16 0" />
-    <path d="M8 30c4 6 8 6 16 0s12-6 16 0" />
+    <circle cx="24" cy="24" r="6" fill="currentColor" />
+    <path d="M24 10 L24 14" />
+    <path d="M24 34 L24 38" />
+    <path d="M10 24 L14 24" />
+    <path d="M34 24 L38 24" />
+    <path d="M14 14 L17 17" />
+    <path d="M31 31 L34 34" />
+    <path d="M14 34 L17 31" />
+    <path d="M31 17 L34 14" />
   </svg>
 );
 
-export const SpiralIcon = ({ className }) => (
+export const SweepIcon = ({ className }) => (
   <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
     <circle cx="24" cy="24" r="20" />
-    <path d="M24 24c0-4 4-8 8-8s8 4 8 8-4 8-8 8-6-3-6-6 3-6 6-6 4 2 4 4-2 4-4 4" />
+    <path d="M10 32 Q24 8, 38 32" />
+    <path d="M14 30 Q24 14, 34 30" strokeOpacity="0.6" />
   </svg>
 );
 
-export const DiamondIcon = ({ className }) => (
+export const TransitionIcon = ({ className }) => (
   <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
     <circle cx="24" cy="24" r="20" />
-    <path d="M24 8L40 24L24 40L8 24L24 8Z" />
-    <path d="M24 14L34 24L24 34L14 24L24 14Z" />
-  </svg>
-);
-
-export const EightIcon = ({ className }) => (
-  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
-    <circle cx="24" cy="24" r="20" />
-    <circle cx="24" cy="16" r="6" />
-    <circle cx="24" cy="32" r="6" />
-  </svg>
-);
-
-export const LeafIcon = ({ className }) => (
-  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
-    <circle cx="24" cy="24" r="20" />
-    <path d="M24 38V18" />
-    <path d="M16 30c0-8 8-14 8-14s8 6 8 14" />
-    <path d="M20 26c0-4 4-7 4-7s4 3 4 7" />
-  </svg>
-);
-
-export const OrbitIcon = ({ className }) => (
-  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
-    <circle cx="24" cy="24" r="20" />
-    <ellipse cx="24" cy="24" rx="14" ry="6" transform="rotate(-30 24 24)" />
-    <circle cx="24" cy="24" r="3" fill="currentColor" />
-  </svg>
-);
-
-export const SnowflakeIcon = ({ className }) => (
-  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
-    <circle cx="24" cy="24" r="20" />
-    <line x1="24" y1="8" x2="24" y2="40" />
-    <line x1="8" y1="24" x2="40" y2="24" />
-    <line x1="12" y1="12" x2="36" y2="36" />
-    <line x1="36" y1="12" x2="12" y2="36" />
-  </svg>
-);
-
-export const SproutIcon = ({ className }) => (
-  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
-    <circle cx="24" cy="24" r="20" />
-    <path d="M24 38V24" />
-    <path d="M24 24c-6-2-8-8-8-12 6 0 10 4 8 12" />
-    <path d="M24 24c6-2 8-8 8-12-6 0-10 4-8 12" />
-  </svg>
-);
-
-export const WisdomIcon = ({ className }) => (
-  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
-    <circle cx="24" cy="24" r="20" />
-    <path d="M16 20c0 0 4-4 8-4s8 4 8 4" />
-    <circle cx="20" cy="24" r="2" fill="currentColor" />
-    <circle cx="28" cy="24" r="2" fill="currentColor" />
-    <path d="M20 32c0 0 2 2 4 2s4-2 4-2" />
-  </svg>
-);
-
-export const MoonIcon = ({ className }) => (
-  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
-    <circle cx="24" cy="24" r="20" />
-    <path d="M30 12c-8 0-14 6-14 14s6 14 14 14c-4 0-10-4-10-14s6-14 10-14z" />
-  </svg>
-);
-
-export const RainIcon = ({ className }) => (
-  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
-    <circle cx="24" cy="24" r="20" />
-    <path d="M12 20h24" />
-    <path d="M16 28l-2 6" />
-    <path d="M24 28l-2 6" />
-    <path d="M32 28l-2 6" />
-    <path d="M20 24l-2 6" />
-    <path d="M28 24l-2 6" />
-  </svg>
-);
-
-export const WindIcon = ({ className }) => (
-  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
-    <circle cx="24" cy="24" r="20" />
-    <path d="M10 20h20c4 0 6-4 2-6" />
-    <path d="M10 28h16c4 0 6 4 2 6" />
-    <path d="M14 24h24" />
-  </svg>
-);
-
-export const LullabyIcon = ({ className }) => (
-  <svg viewBox="0 0 48 48" fill="none" className={className} stroke="currentColor" strokeWidth="1.5">
-    <circle cx="24" cy="24" r="20" />
-    <path d="M18 18c0-4 6-4 6 0v12c0 2-2 4-6 4" />
-    <circle cx="12" cy="34" r="4" />
-    <path d="M30 14l4-4m0 0l4 4m-4-4v8" />
-    <path d="M34 26l2-2m0 0l2 2m-2-2v4" />
+    <path d="M10 24 L18 24 L22 16 L26 32 L30 24 L38 24" />
   </svg>
 );
 
 export const getIconComponent = (iconName) => {
   const icons = {
-    globe: GlobeIcon,
-    dots: DotsIcon,
-    record: RecordIcon,
-    waves: WavesIcon,
-    spiral: SpiralIcon,
-    diamond: DiamondIcon,
-    eight: EightIcon,
-    leaf: LeafIcon,
-    orbit: OrbitIcon,
-    snowflake: SnowflakeIcon,
-    sprout: SproutIcon,
-    wisdom: WisdomIcon,
-    moon: MoonIcon,
-    rain: RainIcon,
-    wind: WindIcon,
-    lullaby: LullabyIcon
+    drums: DrumsIcon,
+    snare: SnareIcon,
+    hihat: HihatIcon,
+    percussion: PercussionIcon,
+    fullkit: FullkitIcon,
+    subbass: SubbassIcon,
+    funkbass: FunkbassIcon,
+    bass808: Bass808Icon,
+    acidbass: AcidbassIcon,
+    deepbass: DeepbassIcon,
+    pad: PadIcon,
+    lead: LeadIcon,
+    arp: ArpIcon,
+    chords: ChordsIcon,
+    texture: TextureIcon,
+    riser: RiserIcon,
+    impact: ImpactIcon,
+    sweep: SweepIcon,
+    transition: TransitionIcon
   };
-  return icons[iconName] || GlobeIcon;
+  return icons[iconName] || DrumsIcon;
 };
