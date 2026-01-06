@@ -1,44 +1,72 @@
 import React, { useState } from 'react';
 import Header from '../components/Header';
 import Banner from '../components/Banner';
-import Scenarios from '../components/Scenarios';
-import SoundscapeSection from '../components/SoundscapeSection';
+import MoodParameters from '../components/Scenarios';
+import LoopSection from '../components/SoundscapeSection';
 import Player from '../components/Player';
 import SignInModal from '../components/SignInModal';
 import PremiumModal from '../components/PremiumModal';
-import { focusSoundscapes, relaxSoundscapes, sleepSoundscapes } from '../data/mock';
+import DownloadModal from '../components/DownloadModal';
+import { drumLoops, bassLoops, synthLoops, fxLoops } from '../data/mock';
 
 const HomePage = () => {
-  const [currentTrack, setCurrentTrack] = useState({
+  const [currentLoop, setCurrentLoop] = useState({
     id: 1,
-    name: 'Focus',
-    icon: 'globe',
-    section: 'Focus'
+    name: 'Kick Foundation',
+    icon: 'drums',
+    bpm: 120,
+    bars: 8,
+    section: 'Drums'
   });
   const [isPlaying, setIsPlaying] = useState(false);
   const [showSignIn, setShowSignIn] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
+  const [showDownload, setShowDownload] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState('');
+  const [selectedLoop, setSelectedLoop] = useState(null);
+  const [activeMoods, setActiveMoods] = useState([1, 2, 3]); // Peaceful, Focus, Groovy are free
 
-  const handlePlay = (track, section) => {
-    if (track.locked) {
-      setSelectedFeature(track.name);
+  const handlePlay = (loop, section) => {
+    if (loop.locked) {
+      setSelectedFeature(loop.name);
       setShowPremium(true);
       return;
     }
-    setCurrentTrack({ ...track, section });
+    setCurrentLoop({ ...loop, section, bars: 8 });
     setIsPlaying(true);
+  };
+
+  const handleDownload = (loop) => {
+    if (loop.locked) {
+      setSelectedFeature(loop.name);
+      setShowPremium(true);
+      return;
+    }
+    setSelectedLoop(loop);
+    setShowDownload(true);
   };
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
   };
 
-  const handleScenarioClick = (scenario) => {
-    if (scenario.locked) {
-      setSelectedFeature(scenario.name);
+  const handleStop = () => {
+    setIsPlaying(false);
+  };
+
+  const handleMoodClick = (mood) => {
+    if (mood.locked) {
+      setSelectedFeature(mood.name + ' mood');
       setShowPremium(true);
     }
+  };
+
+  const handleToggleMood = (moodId) => {
+    setActiveMoods(prev => 
+      prev.includes(moodId) 
+        ? prev.filter(id => id !== moodId)
+        : [...prev, moodId]
+    );
   };
 
   return (
@@ -49,37 +77,53 @@ const HomePage = () => {
         {/* Banner Carousel */}
         <Banner />
         
-        {/* Scenarios Section */}
-        <Scenarios onScenarioClick={handleScenarioClick} />
-        
-        {/* Soundscape Sections */}
-        <SoundscapeSection 
-          title="Focus" 
-          soundscapes={focusSoundscapes}
-          onPlay={(track) => handlePlay(track, 'Focus')}
-          currentPlaying={currentTrack}
+        {/* Mood Parameters Section */}
+        <MoodParameters 
+          onMoodClick={handleMoodClick}
+          activeMoods={activeMoods}
+          onToggleMood={handleToggleMood}
         />
         
-        <SoundscapeSection 
-          title="Relax" 
-          soundscapes={relaxSoundscapes}
-          onPlay={(track) => handlePlay(track, 'Relax')}
-          currentPlaying={currentTrack}
+        {/* Loop Sections */}
+        <LoopSection 
+          title="Drums" 
+          loops={drumLoops}
+          onPlay={(loop) => handlePlay(loop, 'Drums')}
+          onDownload={handleDownload}
+          currentPlaying={currentLoop}
         />
         
-        <SoundscapeSection 
-          title="Sleep" 
-          soundscapes={sleepSoundscapes}
-          onPlay={(track) => handlePlay(track, 'Sleep')}
-          currentPlaying={currentTrack}
+        <LoopSection 
+          title="Bass" 
+          loops={bassLoops}
+          onPlay={(loop) => handlePlay(loop, 'Bass')}
+          onDownload={handleDownload}
+          currentPlaying={currentLoop}
+        />
+        
+        <LoopSection 
+          title="Synths" 
+          loops={synthLoops}
+          onPlay={(loop) => handlePlay(loop, 'Synths')}
+          onDownload={handleDownload}
+          currentPlaying={currentLoop}
+        />
+        
+        <LoopSection 
+          title="FX & Transitions" 
+          loops={fxLoops}
+          onPlay={(loop) => handlePlay(loop, 'FX')}
+          onDownload={handleDownload}
+          currentPlaying={currentLoop}
         />
       </main>
       
       {/* Bottom Player */}
       <Player 
-        currentTrack={currentTrack}
+        currentLoop={currentLoop}
         isPlaying={isPlaying}
         onPlayPause={handlePlayPause}
+        onStop={handleStop}
       />
       
       {/* Modals */}
@@ -88,6 +132,11 @@ const HomePage = () => {
         isOpen={showPremium} 
         onClose={() => setShowPremium(false)} 
         featureName={selectedFeature}
+      />
+      <DownloadModal
+        isOpen={showDownload}
+        onClose={() => setShowDownload(false)}
+        loop={selectedLoop}
       />
     </div>
   );
