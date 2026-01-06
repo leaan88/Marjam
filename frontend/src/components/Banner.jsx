@@ -18,7 +18,7 @@ const Banner = () => {
         {banners.map((banner, index) => (
           <div
             key={banner.id}
-            className={`absolute inset-0 transition-all duration-700 ease-in-out ${
+            className={`absolute inset-0 transition-all duration-700 ease-in-out cursor-pointer ${
               index === currentSlide
                 ? 'opacity-100 translate-x-0'
                 : index < currentSlide
@@ -33,7 +33,11 @@ const Banner = () => {
                 alt={banner.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+              <div 
+                className="absolute inset-0" 
+                style={{ background: banner.bgStyle }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             </div>
 
             {/* Content */}
@@ -55,10 +59,10 @@ const Banner = () => {
           <button
             key={index}
             onClick={() => setCurrentSlide(index)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+            className={`h-2 rounded-full transition-all duration-300 ${
               index === currentSlide
                 ? 'bg-white w-6'
-                : 'bg-white/30 hover:bg-white/50'
+                : 'bg-white/30 hover:bg-white/50 w-2'
             }`}
           />
         ))}
