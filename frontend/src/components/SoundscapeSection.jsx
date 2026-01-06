@@ -8,7 +8,7 @@ const SoundscapeItem = ({ item, onPlay, isPlaying }) => {
   return (
     <div 
       className="group flex items-center justify-between py-4 px-2 hover:bg-white/5 rounded-lg transition-all duration-200 cursor-pointer"
-      onClick={() => !item.locked && onPlay(item)}
+      onClick={() => onPlay(item)}
     >
       <div className="flex items-center gap-4">
         <div className="w-12 h-12 flex items-center justify-center">
