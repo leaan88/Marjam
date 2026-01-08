@@ -36,6 +36,7 @@ class ReplicateMusicService:
             input_params = {
                 "prompt": prompt,
                 "duration": min(duration, 30),  # Max 30 seconds
+                "model_version": model_version,  # melody or large
                 "temperature": temperature,
                 "top_k": top_k,
                 "top_p": top_p,
