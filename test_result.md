@@ -144,7 +144,7 @@ backend:
           agent: "testing"
           comment: "✅ POST /api/music/generate endpoint working correctly - accepts requests with proper payload structure and returns success, generation_id, audio_url, provider, duration. Note: Replicate integration is MOCKED due to model configuration issues, but endpoint structure is correct"
 
-  - task: "Generations List Endpoint"
+  - task: "Sample Upload and Management Endpoints"
     implemented: true
     working: true
     file: "/app/backend/server.py"
@@ -154,7 +154,55 @@ backend:
     status_history:
         - working: true
           agent: "testing"
-          comment: "✅ GET /api/music/generations endpoint working correctly - returns list of recent generations with proper structure"
+          comment: "✅ All sample endpoints working correctly: GET /api/samples returns empty list initially ✅, POST /api/samples/upload accepts multipart form data with file, name, bpm, loop_type, mood and returns proper response with id, name, filename, audio_url, bpm, loop_type, mood, created_at ✅, GET /api/samples/{sample_id} retrieves uploaded sample by ID ✅, DELETE /api/samples/{sample_id} successfully deletes sample and file ✅. File upload validation working (WAV files accepted), database persistence confirmed, file cleanup on deletion verified."
+
+  - task: "Sample List Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/samples endpoint working correctly - returns proper JSON structure with 'samples' array, handles empty state correctly, supports filtering by loop_type parameter"
+
+  - task: "Sample Upload Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ POST /api/samples/upload endpoint working perfectly - accepts multipart form data, validates file types (WAV, MP3, FLAC, OGG, M4A, AIFF), generates unique filenames, saves to uploads directory, stores metadata in MongoDB, returns complete sample response with all required fields"
+
+  - task: "Sample Retrieval Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/samples/{sample_id} endpoint working correctly - retrieves sample by UUID, returns 404 for non-existent samples, includes all metadata fields including file_size and original_filename"
+
+  - task: "Sample Deletion Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ DELETE /api/samples/{sample_id} endpoint working correctly - removes sample from database, deletes physical file from uploads directory, returns success confirmation, properly handles 404 for non-existent samples"
 
 frontend:
   - task: "Header Elements"
