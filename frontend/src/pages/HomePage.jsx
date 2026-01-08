@@ -203,6 +203,23 @@ const HomePage = () => {
     }
   };
 
+  // Handle delete uploaded sample
+  const handleDeleteSample = async (loop) => {
+    if (!loop.isUploaded) return;
+    
+    try {
+      await samplesApi.deleteSample(loop.id);
+      setUploadedSamples(prev => prev.filter(s => s.id !== loop.id));
+      
+      // If currently playing this sample, stop
+      if (currentLoop?.id === loop.id) {
+        handleStop();
+      }
+    } catch (err) {
+      console.error('Failed to delete sample:', err);
+    }
+  };
+
   // Get active mood names for generation
   const getActiveMoodNames = () => {
     return activeMoods
