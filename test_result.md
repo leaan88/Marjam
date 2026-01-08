@@ -296,9 +296,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Backend API endpoints tested and working"
+    - "Sample Upload and Management Endpoints"
+    - "Sample List Endpoint" 
+    - "Sample Upload Endpoint"
+    - "Sample Retrieval Endpoint"
+    - "Sample Deletion Endpoint"
   stuck_tasks: 
-    - "Replicate Integration - needs proper model configuration"
+    - "Replicate Integration - needs proper model configuration or billing credit"
   test_all: true
   test_priority: "high_first"
 
