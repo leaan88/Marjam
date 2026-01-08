@@ -23,17 +23,26 @@ UPLOADS_DIR.mkdir(exist_ok=True)
 
 # Import music generation services
 from services.music_generator import music_generator
+from services.auth_service import AuthService, TIER_LIMITS, UserTier
+from routes.auth_routes import auth_router, set_auth_service
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# Initialize auth service
+auth_service = AuthService(db)
+set_auth_service(auth_service)
+
 # Create the main app without a prefix
 app = FastAPI(title="Marjam API", description="AI Music Loop Generation")
 
 # Mount static files for uploads
 app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
+
+# Include auth router
+app.include_router(auth_router)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
