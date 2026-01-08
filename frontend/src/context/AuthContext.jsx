@@ -85,6 +85,7 @@ export const AuthProvider = ({ children }) => {
       if (response.ok && data.success) {
         setToken(data.token);
         setUser(data.user);
+        setLimits(data.limits);
         localStorage.setItem('marjam_token', data.token);
         return { success: true };
       } else {
