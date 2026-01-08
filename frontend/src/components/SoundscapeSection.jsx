@@ -1,15 +1,15 @@
 import React, { useMemo } from 'react';
-import { Lock, Play, Download, Sparkles } from 'lucide-react';
+import { Lock, Play, Download, Sparkles, FolderOpen, Trash2 } from 'lucide-react';
 import { getIconComponent } from './icons/SoundscapeIcons';
 
-const LoopItem = ({ item, onPlay, onDownload, isPlaying }) => {
+const LoopItem = ({ item, onPlay, onDownload, onDelete, isPlaying }) => {
   const IconComponent = useMemo(() => getIconComponent(item.icon), [item.icon]);
   
   return (
     <div 
       className={`group flex items-center justify-between py-4 px-2 hover:bg-white/5 rounded-lg transition-all duration-200 cursor-pointer ${
         item.isGenerated ? 'border-l-2 border-purple-500/50' : ''
-      }`}
+      } ${item.isUploaded ? 'border-l-2 border-blue-500/50' : ''}`}
       onClick={() => onPlay(item)}
     >
       <div className="flex items-center gap-4">
@@ -18,6 +18,11 @@ const LoopItem = ({ item, onPlay, onDownload, isPlaying }) => {
           {item.isGenerated && (
             <div className="absolute -top-1 -right-1">
               <Sparkles className="w-4 h-4 text-purple-400" />
+            </div>
+          )}
+          {item.isUploaded && (
+            <div className="absolute -top-1 -right-1">
+              <FolderOpen className="w-4 h-4 text-blue-400" />
             </div>
           )}
         </div>
@@ -32,15 +37,30 @@ const LoopItem = ({ item, onPlay, onDownload, isPlaying }) => {
             {item.provider && (
               <span className="text-xs text-purple-400/70 capitalize">• {item.provider}</span>
             )}
+            {item.mood && item.isUploaded && (
+              <span className="text-xs text-blue-400/70 capitalize">• {item.mood}</span>
+            )}
           </div>
         </div>
       </div>
       
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         {item.locked ? (
           <Lock className="w-4 h-4 text-white/40" />
         ) : (
           <>
+            {item.isUploaded && onDelete && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(item);
+                }}
+                className="p-2 rounded-full hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                title="Delete Sample"
+              >
+                <Trash2 className="w-4 h-4 text-red-400/60 hover:text-red-400" />
+              </button>
+            )}
             <button 
               onClick={(e) => {
                 e.stopPropagation();
@@ -61,7 +81,7 @@ const LoopItem = ({ item, onPlay, onDownload, isPlaying }) => {
   );
 };
 
-const LoopSection = ({ title, loops, onPlay, onDownload, currentPlaying }) => {
+const LoopSection = ({ title, loops, onPlay, onDownload, onDelete, currentPlaying }) => {
   return (
     <section className="w-full max-w-3xl mx-auto mt-10">
       <h2 className="text-2xl font-light text-white mb-2">{title}</h2>
@@ -73,6 +93,7 @@ const LoopSection = ({ title, loops, onPlay, onDownload, currentPlaying }) => {
             item={item} 
             onPlay={onPlay}
             onDownload={onDownload}
+            onDelete={onDelete}
             isPlaying={currentPlaying?.id === item.id && currentPlaying?.section === title}
           />
         ))}
