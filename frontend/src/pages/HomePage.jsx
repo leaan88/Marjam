@@ -274,6 +274,7 @@ const HomePage = () => {
             loops={uploadedSamples}
             onPlay={(loop) => handlePlay(loop, 'My Samples')}
             onDownload={handleDownload}
+            onDelete={handleDeleteSample}
             currentPlaying={currentLoop}
           />
         )}
