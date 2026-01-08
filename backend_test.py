@@ -362,6 +362,7 @@ class MarjamAPITester:
         print("=" * 60)
         
         results = {}
+        sample_id = None
         
         # Test 1: Welcome endpoint
         results["welcome"] = self.test_welcome_endpoint()
@@ -374,6 +375,26 @@ class MarjamAPITester:
         
         # Test 4: Generations list endpoint
         results["generations_list"] = self.test_generations_list_endpoint()
+        
+        # Test 5: Samples list endpoint (should work even if empty)
+        results["samples_list"] = self.test_samples_list_endpoint()
+        
+        # Test 6: Sample upload endpoint
+        results["sample_upload"] = self.test_sample_upload_endpoint()
+        if results["sample_upload"].get("success"):
+            sample_id = results["sample_upload"].get("sample_id")
+        
+        # Test 7: Get sample endpoint (only if upload succeeded)
+        if sample_id:
+            results["sample_get"] = self.test_sample_get_endpoint(sample_id)
+        else:
+            results["sample_get"] = {"success": False, "error": "Skipped due to upload failure"}
+        
+        # Test 8: Delete sample endpoint (only if upload succeeded)
+        if sample_id:
+            results["sample_delete"] = self.test_sample_delete_endpoint(sample_id)
+        else:
+            results["sample_delete"] = {"success": False, "error": "Skipped due to upload failure"}
         
         # Summary
         print("\n" + "=" * 60)
