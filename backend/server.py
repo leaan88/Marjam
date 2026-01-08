@@ -410,6 +410,218 @@ async def update_sample(
     updated = await db.samples.find_one({"id": sample_id}, {"_id": 0})
     return updated
 
+# ============ CORE SAMPLES (System/Admin only) ============
+
+CORE_SAMPLES_DIR = ROOT_DIR / "core_samples"
+CORE_SAMPLES_DIR.mkdir(exist_ok=True)
+
+# Mount core samples as static files
+app.mount("/core", StaticFiles(directory=str(CORE_SAMPLES_DIR)), name="core_samples")
+
+@api_router.post("/core-samples/upload")
+async def upload_core_sample(
+    file: UploadFile = File(...),
+    name: str = Form(...),
+    bpm: int = Form(120),
+    loop_type: str = Form("full"),
+    mood: str = Form("groovy"),
+    key: str = Form(None),
+    category: str = Form("loops"),  # loops, drums, bass, synth, fx, vocals
+    tags: str = Form("")  # comma-separated tags
+):
+    """
+    Upload a core/system sample (Admin only - permanent, used for song creation)
+    """
+    
+    # Validate file type
+    allowed_types = [".wav", ".mp3", ".flac", ".ogg", ".m4a", ".aiff"]
+    file_ext = Path(file.filename).suffix.lower()
+    
+    if file_ext not in allowed_types:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid file type. Allowed: {', '.join(allowed_types)}"
+        )
+    
+    # Generate unique filename
+    sample_id = str(uuid.uuid4())
+    safe_filename = f"{sample_id}{file_ext}"
+    file_path = CORE_SAMPLES_DIR / safe_filename
+    
+    try:
+        # Save file
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        file_size = os.path.getsize(file_path)
+        
+        # Parse tags
+        tag_list = [t.strip() for t in tags.split(",") if t.strip()]
+        
+        # Create core sample record
+        core_sample = {
+            "id": sample_id,
+            "name": name,
+            "filename": safe_filename,
+            "original_filename": file.filename,
+            "audio_url": f"/core/{safe_filename}",
+            "bpm": bpm,
+            "loop_type": loop_type,
+            "mood": mood,
+            "key": key,
+            "category": category,
+            "tags": tag_list,
+            "file_size": file_size,
+            "is_core": True,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.core_samples.insert_one(core_sample)
+        
+        logger.info(f"Core sample uploaded: {name} ({safe_filename})")
+        
+        return core_sample
+        
+    except Exception as e:
+        if file_path.exists():
+            file_path.unlink()
+        logger.error(f"Core upload error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/core-samples")
+async def get_core_samples(
+    category: Optional[str] = None,
+    loop_type: Optional[str] = None,
+    mood: Optional[str] = None,
+    limit: int = 100
+):
+    """Get all core/system samples"""
+    
+    query = {"is_core": True}
+    if category:
+        query["category"] = category
+    if loop_type:
+        query["loop_type"] = loop_type
+    if mood:
+        query["mood"] = mood
+    
+    samples = await db.core_samples.find(
+        query, 
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(limit)
+    
+    return {"core_samples": samples, "count": len(samples)}
+
+@api_router.delete("/core-samples/{sample_id}")
+async def delete_core_sample(sample_id: str):
+    """Delete a core sample (Admin only)"""
+    
+    sample = await db.core_samples.find_one({"id": sample_id})
+    
+    if not sample:
+        raise HTTPException(status_code=404, detail="Core sample not found")
+    
+    # Delete file
+    file_path = CORE_SAMPLES_DIR / sample["filename"]
+    if file_path.exists():
+        file_path.unlink()
+    
+    await db.core_samples.delete_one({"id": sample_id})
+    
+    return {"success": True, "message": "Core sample deleted"}
+
+# ============ SONG BUILDER ============
+
+class TrackItem(BaseModel):
+    sample_id: str
+    start_bar: int = 0
+    length_bars: int = 8
+    volume: float = 1.0
+    pan: float = 0.0  # -1 to 1
+
+class SongCreateRequest(BaseModel):
+    name: str
+    bpm: int = 120
+    tracks: List[TrackItem] = []
+
+@api_router.post("/songs/create")
+async def create_song(request: SongCreateRequest):
+    """
+    Create a song arrangement using core samples
+    """
+    
+    song_id = str(uuid.uuid4())
+    
+    # Validate all sample IDs exist
+    for track in request.tracks:
+        sample = await db.core_samples.find_one({"id": track.sample_id})
+        if not sample:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Sample not found: {track.sample_id}"
+            )
+    
+    song = {
+        "id": song_id,
+        "name": request.name,
+        "bpm": request.bpm,
+        "tracks": [t.model_dump() for t in request.tracks],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "status": "created"
+    }
+    
+    await db.songs.insert_one(song)
+    
+    return {"success": True, "song": song}
+
+@api_router.get("/songs")
+async def get_songs(limit: int = 50):
+    """Get all created songs"""
+    
+    songs = await db.songs.find(
+        {}, 
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(limit)
+    
+    return {"songs": songs}
+
+@api_router.get("/songs/{song_id}")
+async def get_song(song_id: str):
+    """Get a song with its track details"""
+    
+    song = await db.songs.find_one({"id": song_id}, {"_id": 0})
+    
+    if not song:
+        raise HTTPException(status_code=404, detail="Song not found")
+    
+    # Enrich tracks with sample info
+    enriched_tracks = []
+    for track in song.get("tracks", []):
+        sample = await db.core_samples.find_one(
+            {"id": track["sample_id"]}, 
+            {"_id": 0}
+        )
+        if sample:
+            enriched_tracks.append({
+                **track,
+                "sample": sample
+            })
+    
+    song["tracks"] = enriched_tracks
+    
+    return song
+
+@api_router.delete("/songs/{song_id}")
+async def delete_song(song_id: str):
+    """Delete a song"""
+    
+    result = await db.songs.delete_one({"id": song_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Song not found")
+    
+    return {"success": True, "message": "Song deleted"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
