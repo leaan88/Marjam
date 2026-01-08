@@ -30,14 +30,8 @@ class ReplicateMusicService:
             return {"success": False, "error": "Replicate API token not configured"}
         
         try:
-            # Select model based on version
-            model_map = {
-                "melody": "meta/musicgen:671ac645ce5e552cc63a54a2bbff63fcf798043ac92924f3db7eb40b4d4926fd",
-                "large": "meta/musicgen:7be0f12c54a8d033a0fbd14418c9af98962da9a86f5ff7811f9b3423a1f0b7d7",
-                "stereo-melody": "meta/musicgen:671ac645ce5e552cc63a54a2bbff63fcf798043ac92924f3db7eb40b4d4926fd"
-            }
-            
-            model = model_map.get(model_version, model_map["melody"])
+            # Use the current meta/musicgen model (Replicate handles versioning automatically)
+            model = "meta/musicgen"
             
             input_params = {
                 "prompt": prompt,
