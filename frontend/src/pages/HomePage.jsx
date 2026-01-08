@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Wand2 } from 'lucide-react';
+import { Plus, Wand2, Upload, FolderOpen } from 'lucide-react';
 import Header from '../components/Header';
 import Banner from '../components/Banner';
 import MoodParameters from '../components/Scenarios';
@@ -9,8 +9,12 @@ import SignInModal from '../components/SignInModal';
 import PremiumModal from '../components/PremiumModal';
 import DownloadModal from '../components/DownloadModal';
 import GenerateModal from '../components/GenerateModal';
+import UploadModal from '../components/UploadModal';
 import { drumLoops, bassLoops, synthLoops, fxLoops, moodParameters } from '../data/mock';
+import { samplesApi } from '../services/api';
 import { Button } from '../components/ui/button';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 const HomePage = () => {
   const [currentLoop, setCurrentLoop] = useState({
@@ -26,15 +30,57 @@ const HomePage = () => {
   const [showPremium, setShowPremium] = useState(false);
   const [showDownload, setShowDownload] = useState(false);
   const [showGenerate, setShowGenerate] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState('');
   const [selectedLoop, setSelectedLoop] = useState(null);
-  const [activeMoods, setActiveMoods] = useState([1, 2, 3]); // Peaceful, Focus, Groovy are free
+  const [activeMoods, setActiveMoods] = useState([1, 2, 3]);
+  
+  // User uploaded samples
+  const [uploadedSamples, setUploadedSamples] = useState([]);
   
   // AI Generated loops
   const [generatedLoops, setGeneratedLoops] = useState([]);
   
   // Audio ref for playing generated audio
   const audioRef = useRef(null);
+
+  // Load uploaded samples on mount
+  useEffect(() => {
+    loadSamples();
+  }, []);
+
+  const loadSamples = async () => {
+    try {
+      const data = await samplesApi.getSamples();
+      // Convert samples to loop format
+      const loops = data.samples.map(sample => ({
+        id: sample.id,
+        name: sample.name,
+        icon: getIconForType(sample.loop_type),
+        bpm: sample.bpm,
+        locked: false,
+        audio_url: samplesApi.getAudioUrl(sample.audio_url),
+        mood: sample.mood,
+        loop_type: sample.loop_type,
+        isUploaded: true
+      }));
+      setUploadedSamples(loops);
+    } catch (err) {
+      console.error('Failed to load samples:', err);
+    }
+  };
+
+  const getIconForType = (type) => {
+    const iconMap = {
+      'drums': 'drums',
+      'bass': 'subbass',
+      'synth': 'pad',
+      'lead': 'lead',
+      'fx': 'riser',
+      'full': 'fullkit'
+    };
+    return iconMap[type] || 'drums';
+  };
 
   const handlePlay = (loop, section) => {
     if (loop.locked) {
@@ -43,11 +89,13 @@ const HomePage = () => {
       return;
     }
     
-    // If it's a generated loop with audio_url, play it
+    // If it has audio_url, play it
     if (loop.audio_url) {
       if (audioRef.current) {
         audioRef.current.src = loop.audio_url;
-        audioRef.current.play();
+        audioRef.current.play().catch(err => {
+          console.error('Playback failed:', err);
+        });
         setIsPlaying(true);
       }
     }
@@ -71,7 +119,7 @@ const HomePage = () => {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play();
+        audioRef.current.play().catch(console.error);
       }
     }
     setIsPlaying(!isPlaying);
@@ -124,9 +172,34 @@ const HomePage = () => {
       setCurrentLoop({ ...newLoop, section: 'AI Generated', bars: 8 });
       if (audioRef.current) {
         audioRef.current.src = result.audio_url;
-        audioRef.current.play();
+        audioRef.current.play().catch(console.error);
         setIsPlaying(true);
       }
+    }
+  };
+
+  // Handle new uploaded sample
+  const handleUploaded = (sample) => {
+    const newLoop = {
+      id: sample.id,
+      name: sample.name,
+      icon: getIconForType(sample.loop_type),
+      bpm: sample.bpm,
+      locked: false,
+      audio_url: samplesApi.getAudioUrl(sample.audio_url),
+      mood: sample.mood,
+      loop_type: sample.loop_type,
+      isUploaded: true
+    };
+    
+    setUploadedSamples(prev => [newLoop, ...prev]);
+    
+    // Auto-play the uploaded sample
+    setCurrentLoop({ ...newLoop, section: 'My Samples', bars: 8 });
+    if (audioRef.current) {
+      audioRef.current.src = newLoop.audio_url;
+      audioRef.current.play().catch(console.error);
+      setIsPlaying(true);
     }
   };
 
@@ -152,14 +225,21 @@ const HomePage = () => {
         {/* Banner Carousel */}
         <Banner />
         
-        {/* AI Generate Button */}
-        <div className="w-full max-w-3xl mx-auto mt-8">
+        {/* Action Buttons */}
+        <div className="w-full max-w-3xl mx-auto mt-8 flex gap-4">
           <Button
             onClick={() => setShowGenerate(true)}
-            className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium text-lg rounded-xl"
+            className="flex-1 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium text-base rounded-xl"
           >
             <Wand2 className="w-5 h-5 mr-2" />
             Generate AI Loop
+          </Button>
+          <Button
+            onClick={() => setShowUpload(true)}
+            className="flex-1 py-4 bg-white/10 hover:bg-white/20 text-white font-medium text-base rounded-xl border border-white/10"
+          >
+            <Upload className="w-5 h-5 mr-2" />
+            Upload Sample
           </Button>
         </div>
         
@@ -169,6 +249,17 @@ const HomePage = () => {
           activeMoods={activeMoods}
           onToggleMood={handleToggleMood}
         />
+        
+        {/* Uploaded Samples Section */}
+        {uploadedSamples.length > 0 && (
+          <LoopSection 
+            title="📁 My Samples" 
+            loops={uploadedSamples}
+            onPlay={(loop) => handlePlay(loop, 'My Samples')}
+            onDownload={handleDownload}
+            currentPlaying={currentLoop}
+          />
+        )}
         
         {/* AI Generated Loops Section */}
         {generatedLoops.length > 0 && (
@@ -240,6 +331,11 @@ const HomePage = () => {
         onClose={() => setShowGenerate(false)}
         onGenerated={handleGenerated}
         activeMoods={getActiveMoodNames()}
+      />
+      <UploadModal
+        isOpen={showUpload}
+        onClose={() => setShowUpload(false)}
+        onUploaded={handleUploaded}
       />
     </div>
   );
