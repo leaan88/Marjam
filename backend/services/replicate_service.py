@@ -13,16 +13,19 @@ class ReplicateMusicService:
         self.api_token = os.getenv("REPLICATE_API_TOKEN")
         if self.api_token:
             os.environ["REPLICATE_API_TOKEN"] = self.api_token
+        
+        # Correct model ID with version hash
+        self.model_id = "meta/musicgen:671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb"
     
     async def generate_music(
         self,
         prompt: str,
         duration: int = 8,
-        model_version: str = "melody",
+        model_version: str = "stereo-large",
         temperature: float = 1.0,
         top_k: int = 250,
         top_p: float = 0.0,
-        cfg_coef: float = 3.0
+        cfg_coef: int = 3
     ) -> Dict[str, Any]:
         """Generate music using MusicGen on Replicate"""
         
@@ -30,31 +33,38 @@ class ReplicateMusicService:
             return {"success": False, "error": "Replicate API token not configured"}
         
         try:
-            # Use the correct model ID for MusicGen
-            # meta/musicgen is the main model
+            # Build input parameters matching the Replicate API schema
             input_params = {
                 "prompt": prompt,
                 "duration": min(duration, 30),  # Max 30 seconds
+                "model_version": model_version,  # stereo-large, stereo-melody-large, melody-large, large
                 "temperature": temperature,
                 "top_k": top_k,
                 "top_p": top_p,
                 "classifier_free_guidance": cfg_coef,
-                "output_format": "wav",
-                "normalization_strategy": "peak"
+                "output_format": "mp3",
+                "normalization_strategy": "peak",
+                "continuation": False,
+                "multi_band_diffusion": False
             }
             
-            logger.info(f"Generating music with prompt: {prompt[:50]}...")
+            logger.info(f"Generating music with MusicGen: {prompt[:50]}...")
             
-            # Run generation using the correct model ID
+            # Run generation using the correct model ID with version
             output = replicate.run(
-                "meta/musicgen",
+                self.model_id,
                 input=input_params
             )
             
-            # Output is the audio URL (or list of URLs)
+            # Output is a FileOutput object - get the URL
             if output:
-                # Handle both single URL and list responses
-                audio_url = output if isinstance(output, str) else output[0] if isinstance(output, list) else str(output)
+                # Handle FileOutput object
+                if hasattr(output, 'url'):
+                    audio_url = output.url
+                elif isinstance(output, str):
+                    audio_url = output
+                else:
+                    audio_url = str(output)
                 
                 logger.info(f"Generation successful: {audio_url[:100]}...")
                 
@@ -68,12 +78,10 @@ class ReplicateMusicService:
             else:
                 return {"success": False, "error": "No output from Replicate"}
                 
-        except replicate.exceptions.ReplicateError as e:
-            logger.error(f"Replicate API error: {e}")
-            return {"success": False, "error": f"Replicate error: {str(e)}"}
         except Exception as e:
-            logger.error(f"Replicate generation error: {e}")
-            return {"success": False, "error": str(e)}
+            error_msg = str(e)
+            logger.error(f"Replicate generation error: {error_msg}")
+            return {"success": False, "error": f"Replicate error: {error_msg}"}
     
     async def generate_stem(
         self,
@@ -86,11 +94,11 @@ class ReplicateMusicService:
         
         # Enhance prompt with stem-specific instructions
         stem_prompts = {
-            "drums": f"{bpm} BPM drum loop, {prompt}, no melody, percussion only, tight groove",
-            "bass": f"{bpm} BPM bass line, {prompt}, deep sub bass, no drums, rhythmic",
-            "synth": f"{bpm} BPM synth pad, {prompt}, atmospheric, no drums no bass",
-            "lead": f"{bpm} BPM lead melody, {prompt}, catchy hook, no drums",
-            "fx": f"sound effects, risers, impacts, transitions, {prompt}"
+            "drums": f"{bpm} BPM drum loop, {prompt}, percussion only, no melody, tight rhythmic groove",
+            "bass": f"{bpm} BPM bass line, {prompt}, deep bass, no drums, rhythmic and groovy",
+            "synth": f"{bpm} BPM synth pad, {prompt}, atmospheric, ambient, no drums no bass",
+            "lead": f"{bpm} BPM lead melody, {prompt}, catchy melodic hook, no drums",
+            "fx": f"sound effects, risers, impacts, transitions, cinematic, {prompt}"
         }
         
         enhanced_prompt = stem_prompts.get(stem_type, f"{bpm} BPM {stem_type}, {prompt}")
@@ -98,8 +106,9 @@ class ReplicateMusicService:
         return await self.generate_music(
             prompt=enhanced_prompt,
             duration=duration,
+            model_version="stereo-large",
             temperature=0.9,
-            cfg_coef=4.0
+            cfg_coef=4
         )
 
 replicate_service = ReplicateMusicService()
