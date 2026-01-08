@@ -12,7 +12,7 @@ class StableAudioService:
     
     def __init__(self):
         self.api_key = os.getenv("STABLE_AUDIO_API_KEY")
-        self.base_url = "https://api.stability.ai/v2beta/stable-audio"
+        self.base_url = "https://api.stability.ai/v2beta/audio/generate"
     
     async def generate_music(
         self,
@@ -29,27 +29,29 @@ class StableAudioService:
         
         headers = {
             "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
             "Accept": "audio/*"
         }
         
-        payload = {
+        # Use form data as per Stability AI docs
+        data = {
             "prompt": prompt,
-            "seconds_total": min(duration, 47),  # Max 47 seconds
-            "steps": steps,
-            "cfg_scale": cfg_scale
+            "output_format": "mp3",
+            "duration": str(min(duration, 47)),  # Max ~47 seconds
+            "steps": str(steps)
         }
         
         if seed is not None:
-            payload["seed"] = seed
+            data["seed"] = str(seed)
         
         try:
-            async with httpx.AsyncClient(timeout=120.0) as client:
+            async with httpx.AsyncClient(timeout=180.0) as client:
                 response = await client.post(
-                    f"{self.base_url}/generate",
-                    json=payload,
+                    self.base_url,
+                    data=data,
                     headers=headers
                 )
+                
+                logger.info(f"Stable Audio response status: {response.status_code}")
                 
                 if response.status_code == 200:
                     # Response is audio data directly
@@ -67,7 +69,7 @@ class StableAudioService:
                 else:
                     error_text = response.text
                     logger.error(f"Stable Audio API error: {response.status_code} - {error_text}")
-                    return {"success": False, "error": f"API error: {response.status_code}"}
+                    return {"success": False, "error": f"API error: {response.status_code} - {error_text[:200]}"}
                     
         except httpx.TimeoutException:
             logger.error("Stable Audio API timeout")
