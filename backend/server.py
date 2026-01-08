@@ -230,6 +230,177 @@ async def get_generation(generation_id: str):
     
     return generation
 
+# ============ SAMPLE UPLOAD ENDPOINTS ============
+
+class SampleResponse(BaseModel):
+    id: str
+    name: str
+    filename: str
+    audio_url: str
+    bpm: Optional[int] = 120
+    key: Optional[str] = None
+    loop_type: str = "full"
+    mood: Optional[str] = None
+    duration: Optional[float] = None
+    created_at: str
+
+@api_router.post("/samples/upload")
+async def upload_sample(
+    file: UploadFile = File(...),
+    name: str = Form(...),
+    bpm: int = Form(120),
+    loop_type: str = Form("full"),
+    mood: str = Form("groovy"),
+    key: str = Form(None)
+):
+    """
+    Upload a custom audio sample
+    
+    - **file**: Audio file (WAV, MP3, FLAC, OGG)
+    - **name**: Display name for the sample
+    - **bpm**: Beats per minute
+    - **loop_type**: Type (drums, bass, synth, lead, fx, full)
+    - **mood**: Mood tag
+    - **key**: Musical key (optional)
+    """
+    
+    # Validate file type
+    allowed_types = [".wav", ".mp3", ".flac", ".ogg", ".m4a", ".aiff"]
+    file_ext = Path(file.filename).suffix.lower()
+    
+    if file_ext not in allowed_types:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid file type. Allowed: {', '.join(allowed_types)}"
+        )
+    
+    # Generate unique filename
+    sample_id = str(uuid.uuid4())
+    safe_filename = f"{sample_id}{file_ext}"
+    file_path = UPLOADS_DIR / safe_filename
+    
+    try:
+        # Save file
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Get file size for duration estimate
+        file_size = os.path.getsize(file_path)
+        
+        # Create sample record
+        sample = {
+            "id": sample_id,
+            "name": name,
+            "filename": safe_filename,
+            "original_filename": file.filename,
+            "audio_url": f"/uploads/{safe_filename}",
+            "bpm": bpm,
+            "loop_type": loop_type,
+            "mood": mood,
+            "key": key,
+            "file_size": file_size,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Save to database
+        await db.samples.insert_one(sample)
+        
+        logger.info(f"Sample uploaded: {name} ({safe_filename})")
+        
+        return SampleResponse(**sample)
+        
+    except Exception as e:
+        # Clean up file if database save fails
+        if file_path.exists():
+            file_path.unlink()
+        logger.error(f"Upload error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/samples")
+async def get_samples(loop_type: Optional[str] = None, limit: int = 50):
+    """Get uploaded samples, optionally filtered by type"""
+    
+    query = {}
+    if loop_type:
+        query["loop_type"] = loop_type
+    
+    samples = await db.samples.find(
+        query, 
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(limit)
+    
+    return {"samples": samples}
+
+@api_router.get("/samples/{sample_id}")
+async def get_sample(sample_id: str):
+    """Get a specific sample by ID"""
+    
+    sample = await db.samples.find_one(
+        {"id": sample_id},
+        {"_id": 0}
+    )
+    
+    if not sample:
+        raise HTTPException(status_code=404, detail="Sample not found")
+    
+    return sample
+
+@api_router.delete("/samples/{sample_id}")
+async def delete_sample(sample_id: str):
+    """Delete a sample"""
+    
+    sample = await db.samples.find_one({"id": sample_id})
+    
+    if not sample:
+        raise HTTPException(status_code=404, detail="Sample not found")
+    
+    # Delete file
+    file_path = UPLOADS_DIR / sample["filename"]
+    if file_path.exists():
+        file_path.unlink()
+    
+    # Delete from database
+    await db.samples.delete_one({"id": sample_id})
+    
+    return {"success": True, "message": "Sample deleted"}
+
+@api_router.put("/samples/{sample_id}")
+async def update_sample(
+    sample_id: str,
+    name: str = Form(None),
+    bpm: int = Form(None),
+    loop_type: str = Form(None),
+    mood: str = Form(None),
+    key: str = Form(None)
+):
+    """Update sample metadata"""
+    
+    sample = await db.samples.find_one({"id": sample_id})
+    
+    if not sample:
+        raise HTTPException(status_code=404, detail="Sample not found")
+    
+    update_data = {}
+    if name is not None:
+        update_data["name"] = name
+    if bpm is not None:
+        update_data["bpm"] = bpm
+    if loop_type is not None:
+        update_data["loop_type"] = loop_type
+    if mood is not None:
+        update_data["mood"] = mood
+    if key is not None:
+        update_data["key"] = key
+    
+    if update_data:
+        await db.samples.update_one(
+            {"id": sample_id},
+            {"$set": update_data}
+        )
+    
+    updated = await db.samples.find_one({"id": sample_id}, {"_id": 0})
+    return updated
+
 # Include the router in the main app
 app.include_router(api_router)
 
