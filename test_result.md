@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the Marjam AI Music Generation API at http://localhost:8001/api - Test endpoints: GET /api/ (welcome), GET /api/music/providers (AI providers list), POST /api/music/generate (music generation), GET /api/music/generations (recent generations list)"
+user_problem_statement: "Test the Marjam API sample upload and management at http://localhost:8001/api - Test endpoints: GET /api/samples, POST /api/samples/upload, GET /api/samples/{sample_id}, DELETE /api/samples/{sample_id}, GET /api/music/providers"
 
 backend:
   - task: "Welcome Endpoint"
