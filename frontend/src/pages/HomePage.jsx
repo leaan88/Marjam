@@ -1,22 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Wand2, Upload, FolderOpen } from 'lucide-react';
+import { Wand2, Upload, Database, Music } from 'lucide-react';
 import Header from '../components/Header';
 import Banner from '../components/Banner';
 import MoodParameters from '../components/Scenarios';
 import LoopSection from '../components/SoundscapeSection';
 import Player from '../components/Player';
-import SignInModal from '../components/SignInModal';
+import LoginModal from '../components/LoginModal';
 import PremiumModal from '../components/PremiumModal';
 import DownloadModal from '../components/DownloadModal';
 import GenerateModal from '../components/GenerateModal';
 import UploadModal from '../components/UploadModal';
+import CoreUploadModal from '../components/CoreUploadModal';
 import { drumLoops, bassLoops, synthLoops, fxLoops, moodParameters } from '../data/mock';
 import { samplesApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 const HomePage = () => {
+  const { user, isAuthenticated, isAdmin, canDownload, limits } = useAuth();
+  
   const [currentLoop, setCurrentLoop] = useState({
     id: 1,
     name: 'Kick Foundation',
@@ -26,33 +30,32 @@ const HomePage = () => {
     section: 'Drums'
   });
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showSignIn, setShowSignIn] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
   const [showDownload, setShowDownload] = useState(false);
   const [showGenerate, setShowGenerate] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+  const [showCoreUpload, setShowCoreUpload] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState('');
   const [selectedLoop, setSelectedLoop] = useState(null);
   const [activeMoods, setActiveMoods] = useState([1, 2, 3]);
   
-  // User uploaded samples
+  // Samples
   const [uploadedSamples, setUploadedSamples] = useState([]);
-  
-  // AI Generated loops
+  const [coreSamples, setCoreSamples] = useState([]);
   const [generatedLoops, setGeneratedLoops] = useState([]);
   
-  // Audio ref for playing generated audio
   const audioRef = useRef(null);
 
-  // Load uploaded samples on mount
+  // Load samples on mount
   useEffect(() => {
     loadSamples();
+    loadCoreSamples();
   }, []);
 
   const loadSamples = async () => {
     try {
       const data = await samplesApi.getSamples();
-      // Convert samples to loop format
       const loops = data.samples.map(sample => ({
         id: sample.id,
         name: sample.name,
@@ -70,6 +73,30 @@ const HomePage = () => {
     }
   };
 
+  const loadCoreSamples = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/core-samples`);
+      const data = await response.json();
+      const loops = (data.core_samples || []).map(sample => ({
+        id: sample.id,
+        name: sample.name,
+        icon: getIconForType(sample.loop_type),
+        bpm: sample.bpm,
+        locked: false,
+        audio_url: `${BACKEND_URL}${sample.audio_url}`,
+        mood: sample.mood,
+        loop_type: sample.loop_type,
+        category: sample.category,
+        tags: sample.tags,
+        key: sample.key,
+        isCore: true
+      }));
+      setCoreSamples(loops);
+    } catch (err) {
+      console.error('Failed to load core samples:', err);
+    }
+  };
+
   const getIconForType = (type) => {
     const iconMap = {
       'drums': 'drums',
@@ -77,7 +104,9 @@ const HomePage = () => {
       'synth': 'pad',
       'lead': 'lead',
       'fx': 'riser',
-      'full': 'fullkit'
+      'full': 'fullkit',
+      'percussion': 'percussion',
+      'vocals': 'lead'
     };
     return iconMap[type] || 'drums';
   };
@@ -89,13 +118,10 @@ const HomePage = () => {
       return;
     }
     
-    // If it has audio_url, play it
     if (loop.audio_url) {
       if (audioRef.current) {
         audioRef.current.src = loop.audio_url;
-        audioRef.current.play().catch(err => {
-          console.error('Playback failed:', err);
-        });
+        audioRef.current.play().catch(console.error);
         setIsPlaying(true);
       }
     }
@@ -105,8 +131,12 @@ const HomePage = () => {
   };
 
   const handleDownload = (loop) => {
-    if (loop.locked) {
-      setSelectedFeature(loop.name);
+    if (!isAuthenticated) {
+      setShowLogin(true);
+      return;
+    }
+    if (!canDownload()) {
+      setSelectedFeature('Download');
       setShowPremium(true);
       return;
     }
@@ -134,6 +164,10 @@ const HomePage = () => {
   };
 
   const handleMoodClick = (mood) => {
+    if (mood.locked && !isAuthenticated) {
+      setShowLogin(true);
+      return;
+    }
     if (mood.locked) {
       setSelectedFeature(mood.name + ' mood');
       setShowPremium(true);
@@ -141,6 +175,12 @@ const HomePage = () => {
   };
 
   const handleToggleMood = (moodId) => {
+    const mood = moodParameters.find(m => m.id === moodId);
+    if (mood?.locked && limits?.locked_moods?.includes(mood.name.toLowerCase())) {
+      setSelectedFeature(mood.name + ' mood');
+      setShowPremium(true);
+      return;
+    }
     setActiveMoods(prev => 
       prev.includes(moodId) 
         ? prev.filter(id => id !== moodId)
@@ -148,15 +188,11 @@ const HomePage = () => {
     );
   };
 
-  // Handle new AI generated loop
   const handleGenerated = (result) => {
     const newLoop = {
       id: result.generation_id || Date.now(),
       name: result.prompt?.slice(0, 30) + '...' || 'AI Generated',
-      icon: result.loop_type === 'drums' ? 'drums' : 
-            result.loop_type === 'bass' ? 'subbass' :
-            result.loop_type === 'synth' ? 'pad' :
-            result.loop_type === 'lead' ? 'lead' : 'drums',
+      icon: getIconForType(result.loop_type),
       bpm: result.bpm || 120,
       locked: false,
       audio_url: result.audio_url,
@@ -167,7 +203,6 @@ const HomePage = () => {
     
     setGeneratedLoops(prev => [newLoop, ...prev]);
     
-    // Auto-play the generated loop
     if (result.audio_url) {
       setCurrentLoop({ ...newLoop, section: 'AI Generated', bars: 8 });
       if (audioRef.current) {
@@ -178,7 +213,6 @@ const HomePage = () => {
     }
   };
 
-  // Handle new uploaded sample
   const handleUploaded = (sample) => {
     const newLoop = {
       id: sample.id,
@@ -194,7 +228,6 @@ const HomePage = () => {
     
     setUploadedSamples(prev => [newLoop, ...prev]);
     
-    // Auto-play the uploaded sample
     setCurrentLoop({ ...newLoop, section: 'My Samples', bars: 8 });
     if (audioRef.current) {
       audioRef.current.src = newLoop.audio_url;
@@ -203,7 +236,31 @@ const HomePage = () => {
     }
   };
 
-  // Handle delete uploaded sample
+  const handleCoreUploaded = (sample) => {
+    const newLoop = {
+      id: sample.id,
+      name: sample.name,
+      icon: getIconForType(sample.loop_type),
+      bpm: sample.bpm,
+      locked: false,
+      audio_url: `${BACKEND_URL}${sample.audio_url}`,
+      mood: sample.mood,
+      loop_type: sample.loop_type,
+      category: sample.category,
+      tags: sample.tags,
+      isCore: true
+    };
+    
+    setCoreSamples(prev => [newLoop, ...prev]);
+    
+    setCurrentLoop({ ...newLoop, section: 'Core Library', bars: 8 });
+    if (audioRef.current) {
+      audioRef.current.src = newLoop.audio_url;
+      audioRef.current.play().catch(console.error);
+      setIsPlaying(true);
+    }
+  };
+
   const handleDeleteSample = async (loop) => {
     if (!loop.isUploaded) return;
     
@@ -211,7 +268,6 @@ const HomePage = () => {
       await samplesApi.deleteSample(loop.id);
       setUploadedSamples(prev => prev.filter(s => s.id !== loop.id));
       
-      // If currently playing this sample, stop
       if (currentLoop?.id === loop.id) {
         handleStop();
       }
@@ -220,18 +276,24 @@ const HomePage = () => {
     }
   };
 
-  // Get active mood names for generation
   const getActiveMoodNames = () => {
     return activeMoods
       .map(id => moodParameters.find(m => m.id === id)?.name?.toLowerCase())
       .filter(Boolean);
   };
 
+  // Group core samples by category
+  const groupedCoreSamples = coreSamples.reduce((acc, sample) => {
+    const cat = sample.category || 'loops';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(sample);
+    return acc;
+  }, {});
+
   return (
     <div className="min-h-screen bg-black">
-      <Header onSignInClick={() => setShowSignIn(true)} />
+      <Header onSignInClick={() => setShowLogin(true)} />
       
-      {/* Hidden audio element for playback */}
       <audio 
         ref={audioRef} 
         onEnded={() => setIsPlaying(false)}
@@ -239,35 +301,52 @@ const HomePage = () => {
       />
       
       <main className="pt-24 pb-32 px-6">
-        {/* Banner Carousel */}
         <Banner />
         
         {/* Action Buttons */}
-        <div className="w-full max-w-3xl mx-auto mt-8 flex gap-4">
+        <div className="w-full max-w-3xl mx-auto mt-8 flex gap-3 flex-wrap">
           <Button
-            onClick={() => setShowGenerate(true)}
-            className="flex-1 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium text-base rounded-xl"
+            onClick={() => isAuthenticated ? setShowGenerate(true) : setShowLogin(true)}
+            className="flex-1 min-w-[140px] py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium text-sm rounded-xl"
           >
-            <Wand2 className="w-5 h-5 mr-2" />
-            Generate AI Loop
+            <Wand2 className="w-4 h-4 mr-2" />
+            Generate AI
           </Button>
           <Button
-            onClick={() => setShowUpload(true)}
-            className="flex-1 py-4 bg-white/10 hover:bg-white/20 text-white font-medium text-base rounded-xl border border-white/10"
+            onClick={() => isAuthenticated ? setShowUpload(true) : setShowLogin(true)}
+            className="flex-1 min-w-[140px] py-4 bg-white/10 hover:bg-white/20 text-white font-medium text-sm rounded-xl border border-white/10"
           >
-            <Upload className="w-5 h-5 mr-2" />
-            Upload Sample
+            <Upload className="w-4 h-4 mr-2" />
+            Upload
           </Button>
+          {isAdmin() && (
+            <Button
+              onClick={() => setShowCoreUpload(true)}
+              className="flex-1 min-w-[140px] py-4 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-medium text-sm rounded-xl"
+            >
+              <Database className="w-4 h-4 mr-2" />
+              Core Upload
+            </Button>
+          )}
         </div>
         
-        {/* Mood Parameters Section */}
         <MoodParameters 
           onMoodClick={handleMoodClick}
           activeMoods={activeMoods}
           onToggleMood={handleToggleMood}
         />
         
-        {/* Uploaded Samples Section */}
+        {/* Core Samples Library */}
+        {coreSamples.length > 0 && (
+          <LoopSection 
+            title="🎹 Core Library" 
+            loops={coreSamples}
+            onPlay={(loop) => handlePlay(loop, 'Core Library')}
+            onDownload={handleDownload}
+            currentPlaying={currentLoop}
+          />
+        )}
+        
         {uploadedSamples.length > 0 && (
           <LoopSection 
             title="📁 My Samples" 
@@ -279,7 +358,6 @@ const HomePage = () => {
           />
         )}
         
-        {/* AI Generated Loops Section */}
         {generatedLoops.length > 0 && (
           <LoopSection 
             title="🎵 AI Generated" 
@@ -290,7 +368,6 @@ const HomePage = () => {
           />
         )}
         
-        {/* Loop Sections */}
         <LoopSection 
           title="Drums" 
           loops={drumLoops}
@@ -324,7 +401,6 @@ const HomePage = () => {
         />
       </main>
       
-      {/* Bottom Player */}
       <Player 
         currentLoop={currentLoop}
         isPlaying={isPlaying}
@@ -333,7 +409,7 @@ const HomePage = () => {
       />
       
       {/* Modals */}
-      <SignInModal isOpen={showSignIn} onClose={() => setShowSignIn(false)} />
+      <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
       <PremiumModal 
         isOpen={showPremium} 
         onClose={() => setShowPremium(false)} 
@@ -354,6 +430,11 @@ const HomePage = () => {
         isOpen={showUpload}
         onClose={() => setShowUpload(false)}
         onUploaded={handleUploaded}
+      />
+      <CoreUploadModal
+        isOpen={showCoreUpload}
+        onClose={() => setShowCoreUpload(false)}
+        onUploaded={handleCoreUploaded}
       />
     </div>
   );
