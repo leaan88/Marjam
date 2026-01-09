@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Wand2, Upload, Database, Music } from 'lucide-react';
+import { Wand2, Upload, Database, Crown, Music } from 'lucide-react';
 import Header from '../components/Header';
 import Banner from '../components/Banner';
 import MoodParameters from '../components/Scenarios';
@@ -11,7 +11,7 @@ import DownloadModal from '../components/DownloadModal';
 import GenerateModal from '../components/GenerateModal';
 import UploadModal from '../components/UploadModal';
 import CoreUploadModal from '../components/CoreUploadModal';
-import { drumLoops, bassLoops, synthLoops, fxLoops, moodParameters } from '../data/mock';
+import { moodParameters } from '../data/mock';
 import { samplesApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
@@ -19,16 +19,9 @@ import { Button } from '../components/ui/button';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 const HomePage = () => {
-  const { user, isAuthenticated, isAdmin, canDownload, limits } = useAuth();
+  const { user, isAuthenticated, isAdmin, isPremium, canDownload, limits, loading } = useAuth();
   
-  const [currentLoop, setCurrentLoop] = useState({
-    id: 1,
-    name: 'Kick Foundation',
-    icon: 'drums',
-    bpm: 120,
-    bars: 8,
-    section: 'Drums'
-  });
+  const [currentLoop, setCurrentLoop] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
@@ -38,7 +31,7 @@ const HomePage = () => {
   const [showCoreUpload, setShowCoreUpload] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState('');
   const [selectedLoop, setSelectedLoop] = useState(null);
-  const [activeMoods, setActiveMoods] = useState([1, 2, 3]);
+  const [activeMoods, setActiveMoods] = useState([1, 2, 3, 4]); // Free moods
   
   // Samples
   const [uploadedSamples, setUploadedSamples] = useState([]);
@@ -47,11 +40,13 @@ const HomePage = () => {
   
   const audioRef = useRef(null);
 
-  // Load samples on mount
+  // Load core samples on mount
   useEffect(() => {
-    loadSamples();
     loadCoreSamples();
-  }, []);
+    if (isAuthenticated) {
+      loadSamples();
+    }
+  }, [isAuthenticated]);
 
   const loadSamples = async () => {
     try {
@@ -92,6 +87,11 @@ const HomePage = () => {
         isCore: true
       }));
       setCoreSamples(loops);
+      
+      // Set first core sample as current
+      if (loops.length > 0 && !currentLoop) {
+        setCurrentLoop({ ...loops[0], section: 'Core Library', bars: 8 });
+      }
     } catch (err) {
       console.error('Failed to load core samples:', err);
     }
@@ -111,13 +111,17 @@ const HomePage = () => {
     return iconMap[type] || 'drums';
   };
 
-  const handlePlay = (loop, section) => {
-    if (loop.locked) {
-      setSelectedFeature(loop.name);
-      setShowPremium(true);
-      return;
+  // Check if mood is available for current user tier
+  const isMoodAvailable = (mood) => {
+    if (!isAuthenticated) {
+      return mood.tier === 'free';
     }
-    
+    if (isAdmin()) return true;
+    if (isPremium()) return mood.tier !== 'admin';
+    return mood.tier === 'free';
+  };
+
+  const handlePlay = (loop, section) => {
     if (loop.audio_url) {
       if (audioRef.current) {
         audioRef.current.src = loop.audio_url;
@@ -164,21 +168,25 @@ const HomePage = () => {
   };
 
   const handleMoodClick = (mood) => {
-    if (mood.locked && !isAuthenticated) {
-      setShowLogin(true);
-      return;
-    }
-    if (mood.locked) {
-      setSelectedFeature(mood.name + ' mood');
-      setShowPremium(true);
+    if (!isMoodAvailable(mood)) {
+      if (!isAuthenticated) {
+        setShowLogin(true);
+      } else {
+        setSelectedFeature(mood.name + ' mood');
+        setShowPremium(true);
+      }
     }
   };
 
   const handleToggleMood = (moodId) => {
     const mood = moodParameters.find(m => m.id === moodId);
-    if (mood?.locked && limits?.locked_moods?.includes(mood.name.toLowerCase())) {
-      setSelectedFeature(mood.name + ' mood');
-      setShowPremium(true);
+    if (!isMoodAvailable(mood)) {
+      if (!isAuthenticated) {
+        setShowLogin(true);
+      } else {
+        setSelectedFeature(mood.name + ' mood');
+        setShowPremium(true);
+      }
       return;
     }
     setActiveMoods(prev => 
@@ -186,6 +194,27 @@ const HomePage = () => {
         ? prev.filter(id => id !== moodId)
         : [...prev, moodId]
     );
+  };
+
+  const handleGenerate = () => {
+    if (!isAuthenticated) {
+      setShowLogin(true);
+      return;
+    }
+    if (limits?.ai_providers?.length === 0) {
+      setSelectedFeature('AI Generation');
+      setShowPremium(true);
+      return;
+    }
+    setShowGenerate(true);
+  };
+
+  const handleUpload = () => {
+    if (!isAuthenticated) {
+      setShowLogin(true);
+      return;
+    }
+    setShowUpload(true);
   };
 
   const handleGenerated = (result) => {
@@ -282,13 +311,21 @@ const HomePage = () => {
       .filter(Boolean);
   };
 
-  // Group core samples by category
-  const groupedCoreSamples = coreSamples.reduce((acc, sample) => {
-    const cat = sample.category || 'loops';
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(sample);
-    return acc;
-  }, {});
+  // Get mood parameters with proper lock state based on user tier
+  const getMoodsWithAccess = () => {
+    return moodParameters.map(mood => ({
+      ...mood,
+      locked: !isMoodAvailable(mood)
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black">
@@ -303,21 +340,65 @@ const HomePage = () => {
       <main className="pt-24 pb-32 px-6">
         <Banner />
         
+        {/* Tier Info Banner */}
+        {isAuthenticated && (
+          <div className="w-full max-w-3xl mx-auto mt-6">
+            <div className={`p-4 rounded-xl border ${
+              isAdmin() ? 'bg-red-500/10 border-red-500/30' :
+              isPremium() ? 'bg-yellow-500/10 border-yellow-500/30' :
+              'bg-green-500/10 border-green-500/30'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Crown className={`w-5 h-5 ${
+                    isAdmin() ? 'text-red-400' :
+                    isPremium() ? 'text-yellow-400' :
+                    'text-green-400'
+                  }`} />
+                  <div>
+                    <p className="text-white font-medium">
+                      {isAdmin() ? 'Admin Access' : isPremium() ? 'Premium Plan' : 'Free Plan'}
+                    </p>
+                    <p className="text-white/50 text-sm">
+                      {isAdmin() ? 'Unlimited access to all features' :
+                       isPremium() ? `${limits?.max_generations || 0} AI generations • ${limits?.max_uploads || 0} uploads` :
+                       `${limits?.max_generations || 0} AI generations • ${limits?.max_uploads || 0} uploads`}
+                    </p>
+                  </div>
+                </div>
+                {!isPremium() && !isAdmin() && (
+                  <Button
+                    onClick={() => setShowPremium(true)}
+                    className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-medium text-sm"
+                  >
+                    Upgrade
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Action Buttons */}
-        <div className="w-full max-w-3xl mx-auto mt-8 flex gap-3 flex-wrap">
+        <div className="w-full max-w-3xl mx-auto mt-6 flex gap-3 flex-wrap">
           <Button
-            onClick={() => isAuthenticated ? setShowGenerate(true) : setShowLogin(true)}
-            className="flex-1 min-w-[140px] py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium text-sm rounded-xl"
+            onClick={handleGenerate}
+            className={`flex-1 min-w-[140px] py-4 text-white font-medium text-sm rounded-xl ${
+              isAuthenticated && limits?.ai_providers?.length > 0
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
+                : 'bg-white/10 hover:bg-white/20 border border-white/10'
+            }`}
           >
             <Wand2 className="w-4 h-4 mr-2" />
-            Generate AI
+            {!isAuthenticated ? 'Sign in to Generate' : 
+             limits?.ai_providers?.length === 0 ? 'Upgrade for AI' : 'Generate AI'}
           </Button>
           <Button
-            onClick={() => isAuthenticated ? setShowUpload(true) : setShowLogin(true)}
+            onClick={handleUpload}
             className="flex-1 min-w-[140px] py-4 bg-white/10 hover:bg-white/20 text-white font-medium text-sm rounded-xl border border-white/10"
           >
             <Upload className="w-4 h-4 mr-2" />
-            Upload
+            {!isAuthenticated ? 'Sign in to Upload' : 'Upload'}
           </Button>
           {isAdmin() && (
             <Button
@@ -334,9 +415,10 @@ const HomePage = () => {
           onMoodClick={handleMoodClick}
           activeMoods={activeMoods}
           onToggleMood={handleToggleMood}
+          moods={getMoodsWithAccess()}
         />
         
-        {/* Core Samples Library */}
+        {/* Core Samples Library - Always visible */}
         {coreSamples.length > 0 && (
           <LoopSection 
             title="🎹 Core Library" 
@@ -347,7 +429,8 @@ const HomePage = () => {
           />
         )}
         
-        {uploadedSamples.length > 0 && (
+        {/* User's uploaded samples - only if authenticated */}
+        {isAuthenticated && uploadedSamples.length > 0 && (
           <LoopSection 
             title="📁 My Samples" 
             loops={uploadedSamples}
@@ -358,7 +441,8 @@ const HomePage = () => {
           />
         )}
         
-        {generatedLoops.length > 0 && (
+        {/* AI Generated - only if authenticated and has generations */}
+        {isAuthenticated && generatedLoops.length > 0 && (
           <LoopSection 
             title="🎵 AI Generated" 
             loops={generatedLoops}
@@ -367,46 +451,17 @@ const HomePage = () => {
             currentPlaying={currentLoop}
           />
         )}
-        
-        <LoopSection 
-          title="Drums" 
-          loops={drumLoops}
-          onPlay={(loop) => handlePlay(loop, 'Drums')}
-          onDownload={handleDownload}
-          currentPlaying={currentLoop}
-        />
-        
-        <LoopSection 
-          title="Bass" 
-          loops={bassLoops}
-          onPlay={(loop) => handlePlay(loop, 'Bass')}
-          onDownload={handleDownload}
-          currentPlaying={currentLoop}
-        />
-        
-        <LoopSection 
-          title="Synths" 
-          loops={synthLoops}
-          onPlay={(loop) => handlePlay(loop, 'Synths')}
-          onDownload={handleDownload}
-          currentPlaying={currentLoop}
-        />
-        
-        <LoopSection 
-          title="FX & Transitions" 
-          loops={fxLoops}
-          onPlay={(loop) => handlePlay(loop, 'FX')}
-          onDownload={handleDownload}
-          currentPlaying={currentLoop}
-        />
       </main>
       
-      <Player 
-        currentLoop={currentLoop}
-        isPlaying={isPlaying}
-        onPlayPause={handlePlayPause}
-        onStop={handleStop}
-      />
+      {/* Bottom Player */}
+      {currentLoop && (
+        <Player 
+          currentLoop={currentLoop}
+          isPlaying={isPlaying}
+          onPlayPause={handlePlayPause}
+          onStop={handleStop}
+        />
+      )}
       
       {/* Modals */}
       <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
