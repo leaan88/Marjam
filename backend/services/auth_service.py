@@ -19,28 +19,48 @@ class UserTier:
     PREMIUM = "premium"
     ADMIN = "admin"
 
-# Tier Limits
+# Tier Limits - Scaled Features (Admin > Premium > Free)
 TIER_LIMITS = {
     UserTier.FREE: {
-        "max_uploads": 5,
-        "max_generations": 3,
+        "max_uploads": 3,
+        "max_generations": 2,
         "can_download": False,
+        "can_use_core_samples": True,  # Can listen only
+        "can_create_songs": False,
         "locked_moods": ["introspective", "uplift", "darker", "lighter", "banging", "dry", "wet", "minimal", "complex", "hypnotic", "energetic", "aggressive", "dreamy"],
-        "max_duration": 8
+        "available_moods": ["peaceful", "focus", "groovy", "chill"],
+        "max_duration": 8,
+        "max_bars": 8,
+        "ai_providers": [],  # No AI access
+        "features": ["listen_core", "listen_samples", "basic_player"]
     },
     UserTier.PREMIUM: {
-        "max_uploads": 100,
-        "max_generations": 50,
+        "max_uploads": 50,
+        "max_generations": 30,
         "can_download": True,
-        "locked_moods": [],
-        "max_duration": 32
+        "can_use_core_samples": True,
+        "can_create_songs": True,
+        "locked_moods": ["aggressive", "dreamy"],  # Only 2 locked
+        "available_moods": ["peaceful", "focus", "groovy", "chill", "introspective", "uplift", "darker", "lighter", "banging", "dry", "wet", "minimal", "complex", "hypnotic", "energetic"],
+        "max_duration": 32,
+        "max_bars": 32,
+        "ai_providers": ["replicate"],  # Limited AI
+        "features": ["listen_core", "listen_samples", "download", "create_songs", "ai_generate", "advanced_player", "export_wav"]
     },
     UserTier.ADMIN: {
-        "max_uploads": -1,  # unlimited
-        "max_generations": -1,
+        "max_uploads": -1,  # Unlimited
+        "max_generations": -1,  # Unlimited
         "can_download": True,
-        "locked_moods": [],
-        "max_duration": 32
+        "can_use_core_samples": True,
+        "can_create_songs": True,
+        "can_upload_core": True,  # Only admin
+        "can_manage_users": True,  # Only admin
+        "locked_moods": [],  # All unlocked
+        "available_moods": ["peaceful", "focus", "groovy", "chill", "introspective", "uplift", "darker", "lighter", "banging", "dry", "wet", "minimal", "complex", "hypnotic", "energetic", "aggressive", "dreamy"],
+        "max_duration": 60,
+        "max_bars": 64,
+        "ai_providers": ["replicate", "stable_audio", "suno"],  # All AI providers
+        "features": ["listen_core", "listen_samples", "download", "create_songs", "ai_generate", "advanced_player", "export_wav", "export_stems", "upload_core", "manage_users", "analytics"]
     }
 }
 
