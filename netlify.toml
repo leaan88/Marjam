@@ -1,0 +1,10 @@
+[build]
+  base    = "frontend"
+  command = "yarn build"
+  publish = "build"
+
+# SPA fallback — all routes (including /share/:token) serve index.html
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
