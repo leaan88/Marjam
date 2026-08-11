@@ -155,4 +155,59 @@ export const samplesApi = {
   }
 };
 
+// Share & Feedback & Summary API
+export const shareApi = {
+  // Share a generation and get a public token
+  async shareTrack(generationId) {
+    const response = await fetch(`${API}/music/${generationId}/share`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Share failed');
+    }
+    return response.json();
+  },
+
+  // Get a shared track and its feedbacks by token
+  async getSharedTrack(token) {
+    const response = await fetch(`${API}/shared/${token}`);
+    if (!response.ok) throw new Error('Track not found');
+    return response.json();
+  },
+
+  // Submit feedback on a shared track
+  async submitFeedback(token, feedback) {
+    const response = await fetch(`${API}/shared/${token}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(feedback),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Feedback submission failed');
+    }
+    return response.json();
+  },
+
+  // Get the AI-generated daily summary
+  async getDailySummary(date) {
+    const url = date ? `${API}/summary/daily?date=${date}` : `${API}/summary/daily`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch summary');
+    return response.json();
+  },
+
+  // Trigger a new daily summary generation (admin/cron)
+  async generateDailySummary() {
+    const response = await fetch(`${API}/summary/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) throw new Error('Summary generation failed');
+    return response.json();
+  },
+};
+
 export default musicApi;

@@ -11,8 +11,10 @@ import DownloadModal from '../components/DownloadModal';
 import GenerateModal from '../components/GenerateModal';
 import UploadModal from '../components/UploadModal';
 import CoreUploadModal from '../components/CoreUploadModal';
+import ShareModal from '../components/ShareModal';
+import DailySummaryPanel from '../components/DailySummaryPanel';
 import { moodParameters } from '../data/mock';
-import { samplesApi } from '../services/api';
+import { samplesApi, shareApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 
@@ -29,6 +31,8 @@ const HomePage = () => {
   const [showGenerate, setShowGenerate] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [showCoreUpload, setShowCoreUpload] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [shareToken, setShareToken] = useState('');
   const [selectedFeature, setSelectedFeature] = useState('');
   const [selectedLoop, setSelectedLoop] = useState(null);
   const [activeMoods, setActiveMoods] = useState([1, 2, 3, 4]); // Free moods
@@ -242,6 +246,19 @@ const HomePage = () => {
     }
   };
 
+  const handleShare = async (loop) => {
+    if (!loop.id || !loop.isGenerated) return;
+    setSelectedLoop(loop);
+    setShareToken('');
+    setShowShare(true);
+    try {
+      const result = await shareApi.shareTrack(loop.id);
+      if (result.success) setShareToken(result.token);
+    } catch (err) {
+      console.error('Share failed:', err);
+    }
+  };
+
   const handleUploaded = (sample) => {
     const newLoop = {
       id: sample.id,
@@ -411,7 +428,9 @@ const HomePage = () => {
           )}
         </div>
         
-        <MoodParameters 
+        <DailySummaryPanel />
+
+        <MoodParameters
           onMoodClick={handleMoodClick}
           activeMoods={activeMoods}
           onToggleMood={handleToggleMood}
@@ -443,11 +462,12 @@ const HomePage = () => {
         
         {/* AI Generated - only if authenticated and has generations */}
         {isAuthenticated && generatedLoops.length > 0 && (
-          <LoopSection 
-            title="🎵 AI Generated" 
+          <LoopSection
+            title="🎵 AI Generated"
             loops={generatedLoops}
             onPlay={(loop) => handlePlay(loop, 'AI Generated')}
             onDownload={handleDownload}
+            onShare={handleShare}
             currentPlaying={currentLoop}
           />
         )}
@@ -490,6 +510,12 @@ const HomePage = () => {
         isOpen={showCoreUpload}
         onClose={() => setShowCoreUpload(false)}
         onUploaded={handleCoreUploaded}
+      />
+      <ShareModal
+        isOpen={showShare}
+        onClose={() => setShowShare(false)}
+        loop={selectedLoop}
+        shareToken={shareToken}
       />
     </div>
   );

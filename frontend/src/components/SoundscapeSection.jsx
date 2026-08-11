@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
-import { Lock, Play, Download, Sparkles, FolderOpen, Trash2 } from 'lucide-react';
+import { Lock, Play, Download, Sparkles, FolderOpen, Trash2, Share2 } from 'lucide-react';
 import { getIconComponent } from './icons/SoundscapeIcons';
 
-const LoopItem = ({ item, onPlay, onDownload, onDelete, isPlaying }) => {
+const LoopItem = ({ item, onPlay, onDownload, onDelete, onShare, isPlaying }) => {
   const IconComponent = useMemo(() => getIconComponent(item.icon), [item.icon]);
   
   return (
@@ -61,7 +61,19 @@ const LoopItem = ({ item, onPlay, onDownload, onDelete, isPlaying }) => {
                 <Trash2 className="w-4 h-4 text-red-400/60 hover:text-red-400" />
               </button>
             )}
-            <button 
+            {item.isGenerated && onShare && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onShare(item);
+                }}
+                className="p-2 rounded-full hover:bg-purple-500/20 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                title="Share Track"
+              >
+                <Share2 className="w-4 h-4 text-purple-400/60 hover:text-purple-400" />
+              </button>
+            )}
+            <button
               onClick={(e) => {
                 e.stopPropagation();
                 onDownload(item);
@@ -81,19 +93,20 @@ const LoopItem = ({ item, onPlay, onDownload, onDelete, isPlaying }) => {
   );
 };
 
-const LoopSection = ({ title, loops, onPlay, onDownload, onDelete, currentPlaying }) => {
+const LoopSection = ({ title, loops, onPlay, onDownload, onDelete, onShare, currentPlaying }) => {
   return (
     <section className="w-full max-w-3xl mx-auto mt-10">
       <h2 className="text-2xl font-light text-white mb-2">{title}</h2>
-      
+
       <div className="divide-y divide-white/5">
         {loops.map((item) => (
-          <LoopItem 
-            key={item.id} 
-            item={item} 
+          <LoopItem
+            key={item.id}
+            item={item}
             onPlay={onPlay}
             onDownload={onDownload}
             onDelete={onDelete}
+            onShare={onShare}
             isPlaying={currentPlaying?.id === item.id && currentPlaying?.section === title}
           />
         ))}

@@ -24,6 +24,7 @@ UPLOADS_DIR.mkdir(exist_ok=True)
 # Import music generation services
 from services.music_generator import music_generator
 from services.auth_service import AuthService, TIER_LIMITS, UserTier
+from services.summary_service import SummaryService
 from routes.auth_routes import auth_router, set_auth_service
 
 # MongoDB connection
@@ -177,11 +178,13 @@ async def generate_loop(request: LoopGenerateRequest):
             
             doc = generation.model_dump()
             doc['created_at'] = doc['created_at'].isoformat()
+            doc['created_at_date'] = datetime.now(timezone.utc).date().isoformat()
             await db.generations.insert_one(doc)
             
             result["generation_id"] = generation.id
-        
+
         return GenerationResponse(**result)
+
         
     except Exception as e:
         logger.error(f"Generation error: {e}")
@@ -621,6 +624,96 @@ async def delete_song(song_id: str):
         raise HTTPException(status_code=404, detail="Song not found")
     
     return {"success": True, "message": "Song deleted"}
+
+# ============ SHARING & FEEDBACK ============
+
+class FeedbackCreate(BaseModel):
+    text: str
+    rating: Optional[int] = None  # 1-5 stars, optional
+
+@api_router.post("/music/{generation_id}/share")
+async def share_generation(generation_id: str):
+    """Make a generation publicly shareable via a unique token"""
+    generation = await db.generations.find_one({"id": generation_id}, {"_id": 0})
+    if not generation:
+        raise HTTPException(status_code=404, detail="Generation not found")
+
+    # Check if already shared
+    existing = await db.shared_tracks.find_one({"generation_id": generation_id}, {"_id": 0})
+    if existing:
+        return {"success": True, "token": existing["token"], "share_url": f"/share/{existing['token']}"}
+
+    token = str(uuid.uuid4()).replace("-", "")[:16]
+    today = datetime.now(timezone.utc).date().isoformat()
+    shared_track = {
+        "id": str(uuid.uuid4()),
+        "generation_id": generation_id,
+        "token": token,
+        "prompt": generation.get("prompt", ""),
+        "mood": generation.get("mood", ""),
+        "bpm": generation.get("bpm"),
+        "loop_type": generation.get("loop_type", ""),
+        "audio_url": generation.get("audio_url", ""),
+        "provider": generation.get("provider", ""),
+        "shared_at": datetime.now(timezone.utc).isoformat(),
+        "shared_at_date": today,
+        "feedback_count": 0,
+    }
+    await db.shared_tracks.insert_one(shared_track)
+    logger.info(f"Generation {generation_id} shared with token {token}")
+    return {"success": True, "token": token, "share_url": f"/share/{token}"}
+
+@api_router.get("/shared/{token}")
+async def get_shared_track(token: str):
+    """Public endpoint — get a shared track by its share token"""
+    shared = await db.shared_tracks.find_one({"token": token}, {"_id": 0})
+    if not shared:
+        raise HTTPException(status_code=404, detail="Shared track not found")
+
+    feedbacks = await db.track_feedback.find(
+        {"token": token}, {"_id": 0}
+    ).sort("created_at", -1).to_list(50)
+
+    return {"success": True, "track": shared, "feedbacks": feedbacks}
+
+@api_router.post("/shared/{token}/feedback")
+async def submit_feedback(token: str, feedback: FeedbackCreate):
+    """Submit community feedback on a shared track"""
+    shared = await db.shared_tracks.find_one({"token": token})
+    if not shared:
+        raise HTTPException(status_code=404, detail="Shared track not found")
+
+    today = datetime.now(timezone.utc).date().isoformat()
+    fb_doc = {
+        "id": str(uuid.uuid4()),
+        "token": token,
+        "generation_id": shared["generation_id"],
+        "text": feedback.text.strip(),
+        "rating": feedback.rating,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at_date": today,
+    }
+    await db.track_feedback.insert_one(fb_doc)
+    await db.shared_tracks.update_one(
+        {"token": token}, {"$inc": {"feedback_count": 1}}
+    )
+
+    return {"success": True, "feedback_id": fb_doc["id"]}
+
+# ============ DAILY SUMMARY ============
+
+@api_router.get("/summary/daily")
+async def get_daily_summary(date: Optional[str] = None):
+    """Get the AI-generated daily summary (cached in MongoDB)"""
+    summary_service = SummaryService(db)
+    return await summary_service.get_daily_summary(date)
+
+@api_router.post("/summary/generate")
+async def generate_daily_summary(background_tasks: BackgroundTasks):
+    """Trigger a fresh AI daily summary generation (intended for cron/admin use)"""
+    summary_service = SummaryService(db)
+    result = await summary_service.generate_daily_summary()
+    return result
 
 # Include the router in the main app
 app.include_router(api_router)
