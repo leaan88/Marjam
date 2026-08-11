@@ -26,25 +26,23 @@ const SharedTrackPage = () => {
   const audioRef = useRef(null);
 
   useEffect(() => {
-    loadTrack();
-  }, [token]);
-
-  const loadTrack = async () => {
+    let cancelled = false;
     setLoading(true);
-    try {
-      const data = await shareApi.getSharedTrack(token);
-      if (data.success) {
-        setTrack(data.track);
-        setFeedbacks(data.feedbacks || []);
-      } else {
-        setError('Track not found');
-      }
-    } catch {
-      setError('Failed to load track');
-    } finally {
-      setLoading(false);
-    }
-  };
+    setError('');
+    shareApi.getSharedTrack(token)
+      .then(data => {
+        if (cancelled) return;
+        if (data.success) {
+          setTrack(data.track);
+          setFeedbacks(data.feedbacks || []);
+        } else {
+          setError('Track not found');
+        }
+      })
+      .catch(() => { if (!cancelled) setError('Failed to load track'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [token]);
 
   const resolveAudioUrl = (url) => {
     if (!url) return null;

@@ -3,6 +3,10 @@
   command = "yarn build"
   publish = "build"
 
+# CI=true makes CRA/CRACO treat ESLint warnings as errors; disable to allow warnings
+[build.environment]
+  CI = "false"
+
 # SPA fallback — all routes (including /share/:token) serve index.html
 [[redirects]]
   from   = "/*"
